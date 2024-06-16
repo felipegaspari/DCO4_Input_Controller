@@ -1,12 +1,12 @@
 
 #include "Arduino.h"
-#include <Adafruit_TinyUSB.h>
+//#include <Adafruit_TinyUSB.h>
 
 #define NUM_VOICES 2
 
 byte OSC1Interval = 24;
 byte OSC2Interval = 24;
-byte OSC2Detune = 127;
+uint16_t OSC2Detune = 255;
 float DETUNE1;
 float DETUNE2;
 uint16_t PW;
@@ -155,8 +155,7 @@ void loop() {
 
 #ifdef ENABLE_SERIAL
   //drawTM(tiempodeejecucion);
-  if (1 == 2) {
-    //if ( SPIval == 111) {
+  if (1 == 1) {
     //if (timer99microsFlag) {58
     //if (timer31msFlag) {
     // if (tiempodeejecuciontotal > 100 ) {
@@ -201,9 +200,10 @@ void loop() {
     //    Serial.print("HOLA");
     //Serial.print((String)" -enc6" + encVal[5]);
 
-    for (int i = 0; i < 11; i++) {
+    for (int i = 0; i < 16; i++) {
       if (i != 9 && i != 8) {
-        Serial.print((String) "MuxAnalog" + (int)i + (String) " " + (uint16_t)muxAnalogData[i] + (String) "; ");
+        //Serial.print((String) "MuxAnalog" + (int)i + (String) " " + (uint16_t)muxAnalogData[i] + (String) "; ");
+        Serial.print((String) " Raw" + (int)i + (String) ": " + (uint16_t)muxAnalogRaw[i] + (String) " ---  ");
       }
     }
     //  for (int i = 0; i < 8; i++) {

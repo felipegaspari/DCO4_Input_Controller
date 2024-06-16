@@ -79,8 +79,8 @@ void serial_send_manual_controls() {
     dataArray[3] = lowByte(RESONANCE);
     dataArray[4] = highByte(ADSR2toVCF);
     dataArray[5] = lowByte(ADSR2toVCF);
-    dataArray[6] = highByte(LFO1toVCF);
-    dataArray[7] = lowByte(LFO1toVCF);
+    dataArray[6] = highByte(LFO2toVCF);
+    dataArray[7] = lowByte(LFO2toVCF);
 
     Serial2.write((char *)"d");
     Serial2.write(dataArray, 8);

@@ -8,7 +8,7 @@ byte note[NUM_VOICES];
 
 byte voiceMode = 0;
 byte currentVoice = 0;
-byte unisonDetune = 0;
+int16_t unisonDetune = 0;
 byte noiseLevel = 0;
 
 // encoder values
@@ -29,9 +29,9 @@ int16_t VCALevelVal;
 int16_t ADSR3toDETUNE1Val;
 int16_t ADSR3toPWMVal;
 
-uint8_t velocityToVCFVal = 0;
-uint8_t velocityToVCAVal = 0;
-uint8_t velocityToPWMVal = 0;
+int8_t velocityToVCFVal = 0;
+int8_t velocityToVCAVal = 0;
+int8_t velocityToPWMVal = 0;
 
 int16_t LFO2toOSC2DETUNEVal;
 
@@ -69,7 +69,7 @@ float velocityToVCF = 0;
 float velocityToVCA = 0;
 float velocityToPWM = 0;
 
-uint16_t aftertouch = 0;
+int16_t aftertouch = 0;
 byte portamentoTime = 0;
 byte portamentoMode = 0;
 
@@ -114,7 +114,7 @@ uint16_t LFO2toPWM;
 float    LFO2toDCO;
 uint16_t LFO2toDETUNE1;
 uint16_t LFO2toDETUNE2;
-uint16_t LFO2toOSC2DETUNE;
+uint8_t LFO2toOSC2DETUNE;
 
 int16_t LFO3Level;
 byte     LFO3Waveform;

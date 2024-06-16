@@ -1,7 +1,7 @@
 #ifndef __SERIAL_H__
 #define __SERIAL_H__
 
-#define ENABLE_SERIAL
+//#define ENABLE_SERIAL
 #define ENABLE_SERIAL1
 #define ENABLE_SERIAL2
 

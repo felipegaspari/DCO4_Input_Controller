@@ -14,12 +14,18 @@ void read_encoders() {
 
     if (direction) {
       speed = encoder.MD_REncoder_Name.speed();
-      if (funcKeyOn) {
+
+      if (presetSaveSelectMode) {
+        if (presetSaveMode) {
+          currentAction = actionArray[1];
+        } else {
+          currentAction = actionAltArray[1];
+        }
+      } else if (funcKeyOn) {
         currentAction = actionAltArray[0];
       } else {
         currentAction = actionArray[0];
       }
-      // Serial.println((String)"Encoder" + i); // DEBUG
     }
 
     switch (currentAction) {
@@ -163,9 +169,9 @@ void read_encoders() {
         } else {
           OSC2DetuneVal = OSC2DetuneVal - (1 + (1 * speed));
         }
-        OSC2DetuneVal = constrain(OSC2DetuneVal, 0, 255);
+        OSC2DetuneVal = constrain(OSC2DetuneVal, 0, 512);
         OSC2Detune = OSC2DetuneVal;
-        serial_send_param_change_byte(15, OSC2Detune);
+        serial_send_param_change(15, OSC2Detune);
         break;
 
       case ACTION_LFO2_to_OSC2_detune:
@@ -212,23 +218,6 @@ void read_encoders() {
         LFO2SpeedVal = constrain(LFO2SpeedVal, 0, 4095);
         controls_formula_update(2);
         serial_send_param_change(42, LFO2SpeedVal);
-        break;
-
-      case ACTION_select_preset:
-        if (direction == DIR_CW) {
-          presetSelectVal = presetSelectVal + (1 + (1 * speed));
-        } else {
-          presetSelectVal = presetSelectVal - (1 + (1 * speed));
-        }
-        if (presetSave) {
-          presetSelectVal = constrain(presetSelectVal, 0, 255);
-          //load_preset_name(presetSelectVal);
-          serial_send_preset_scroll(presetSelectVal, loadedName);
-        } else {
-          presetSelectVal = constrain(presetSelectVal, 0, 255);
-          loadPreset(presetSelectVal);
-          serial_send_preset_scroll(presetSelectVal, presetName);
-        }
         break;
 
       case ACTION_VCA_level:
@@ -278,12 +267,53 @@ void read_encoders() {
 
       case ACTION_UNISON_DETUNE:
         if (direction == DIR_CW) {
-          unisonDetune = unisonDetune + 1;
+          unisonDetune = unisonDetune + (1 + (0.5 * speed));
         } else {
-          unisonDetune = unisonDetune - 1;
+          unisonDetune = unisonDetune - (1 + (1 * speed));
         }
         unisonDetune = constrain(unisonDetune, 0, 127);
         serial_send_param_change_byte(27, (uint8_t)unisonDetune);
+        break;
+
+      case ACTION_select_preset:
+        if (direction == DIR_CW) {
+          presetSelectVal = presetSelectVal + (1 + (1 * speed));
+        } else {
+          presetSelectVal = presetSelectVal - (1 + (1 * speed));
+        }
+        if (presetSaveSelectMode) {
+          presetSelectVal = constrain(presetSelectVal, 0, 255);
+          //load_preset_name(presetSelectVal);
+          serial_send_param_change_byte(140, presetSelectVal);
+        } else {
+          presetSelectVal = constrain(presetSelectVal, 0, 255);
+          loadPresetActions(presetSelectVal);
+          serial_send_param_change_byte(141, presetSelectVal);
+        }
+        break;
+
+      case ACTION_select_char:
+        if (direction == DIR_CW) {
+          charSelectVal = charSelectVal + 1;
+        } else {
+          charSelectVal = charSelectVal - 1;
+        }
+        charSelectVal = constrain(charSelectVal, 32, 255);
+        presetNameVal[presetChar] = charSelectVal;
+        serial_send_preset_scroll(presetSelectVal, presetNameVal);  // needs fix
+        break;
+
+      case ACTION_select_char_pos:
+        if (direction == DIR_CW) {
+          presetChar = presetChar + 1;
+        } else {
+          presetChar = presetChar - 1;
+        }
+        if (presetChar > 11) {
+          presetChar = 0;
+        }
+        charSelectVal = presetNameVal[presetChar];
+        serial_send_save_char_select(presetChar);
         break;
 
       case ACTION_calibration:

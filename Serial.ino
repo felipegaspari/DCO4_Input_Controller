@@ -65,6 +65,15 @@ void serial_send_param_change_byte(byte param, byte paramValue) {
 #endif
 }
 
+void serial_send_preset_name_to_mainboard(){
+
+  Serial2.write((char *)"q");
+
+  Serial2.write(presetNameVal, 8);
+
+  Serial2.write(finishByte);
+}
+
 void serial_send_preset_scroll(byte presetNumber, byte presetNameSerial[]) {
 
 #ifdef ENABLE_SERIAL1
@@ -133,7 +142,7 @@ void serial_read_n() {
           CUTOFF = word(byteArray[0], byteArray[1]);
           RESONANCE = word(byteArray[2], byteArray[3]);
           ADSR2toVCF = word(byteArray[4], byteArray[5]);
-          LFO1toVCF = word(byteArray[6], byteArray[7]);
+          LFO2toVCF = word(byteArray[6], byteArray[7]);
           break;
         }
       case 'e':

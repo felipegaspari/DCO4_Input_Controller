@@ -121,7 +121,7 @@ void read_encoder_buttons() {
         serial_send_param_change_byte(12, LFO2Waveform);
         break;
 
-case TG_VOICE_MODE:
+      case TG_VOICE_MODE:
         voiceMode++;
         if (voiceMode > 2) {
           voiceMode = 0;
@@ -131,37 +131,54 @@ case TG_VOICE_MODE:
 
       case TG_FUNC:
         funcKeyOn = !funcKeyOn;
-        if (!funcKeyOn) {
-          presetSave = false;
-        }
         serial_send_param_change_byte(127, (uint8_t)funcKeyOn);
         break;
 
       case WORK_WITH_PRESETS:
         break;
 
-      case PRESET_SAVE_MODE:
-        presetSave = !presetSave;
-        if (presetSave) {
-          // drawTMString("SAVE");
-          serial_send_signal(3);
-        } else {
-          //  drawTMString("LOAD");
+      case PRESET_SAVE_SELECT_MODE:
+        if (presetSaveMode) {
+          presetSaveMode = false;
+          presetSaveSelectMode = false;
           serial_send_signal(2);
+        } else {
+          presetSaveSelectMode = !presetSaveSelectMode;
+          if (presetSaveSelectMode) {
+            // drawTMString("SAVE");
+            serial_send_signal(3);
+          } else {
+            //  drawTMString("LOAD");
+            serial_send_signal(2);
+          }
         }
         break;
 
+      case PRESET_SAVE_MODE:
+
+        break;
+
       case SAVE_PRESET:
-        if (presetSave) {
-          serial_send_preset_scroll(presetSelectVal, presetNameVal);
-          serial_send_signal(4);
-          presetSaved = false;
-          for (int i = 0; i < 13; i++) {
-            presetNameVal[i] = presetName[i];
+        if (presetSaveMode) {
+          presetSaveMode = false;
+          presetSaveSelectMode = false;
+          
+          //serial_send_signal(5);
+          serial_send_preset_name_to_mainboard();
+          serial_send_param_change_byte(142,presetSelectVal);
+          writePresetActions(presetSelectVal);
+        } else {
+          if (presetSaveSelectMode) {
+            serial_send_preset_scroll(presetSelectVal, presetNameVal);
+            serial_send_signal(4);
+            presetSaveMode = true;
+            for (int i = 0; i < 13; i++) {
+              presetNameVal[i] = presetName[i];
+            }
+            charSelectVal = presetNameVal[0];
+            serial_send_save_char_select(0);
+            serial_send_preset_scroll(presetSelectVal, presetNameVal);
           }
-          charSelectVal = presetNameVal[0];
-          serial_send_save_char_select(0);
-          serial_send_preset_scroll(presetSelectVal, presetNameVal);
         }
         break;
 
@@ -181,9 +198,9 @@ case TG_VOICE_MODE:
         break;
       case TG_MAN_POTS:
         potsControlManual = !potsControlManual;
-         VCFPotsControlManual = potsControlManual;
-         VCAPotsControlManual = potsControlManual;
-         PWMPotsControlManual = potsControlManual;
+        VCFPotsControlManual = potsControlManual;
+        VCAPotsControlManual = potsControlManual;
+        PWMPotsControlManual = potsControlManual;
         serial_send_param_change_byte(129, potsControlManual);
         break;
       case TG_MANUAL_VCF_POTS:
@@ -208,12 +225,16 @@ case TG_VOICE_MODE:
         PWMPotsControlManual = allControlsManual;
         serial_send_param_change_byte(125, allControlsManual);
         break;
+
       case TG_ENABLE_ADSR3:
         ADSR3Enabled = !ADSR3Enabled;
+        faderRow2ControlManual = false;
         serial_send_param_change_byte(126, (uint8_t)ADSR3Enabled);
         break;
+
       case SELECT_ENC_ACTION:
         break;
+
       case TG_ADSR3_TO_OSC_SELECT:
         ADSR3ToOscSelect++;
         if (ADSR3ToOscSelect > 2) {

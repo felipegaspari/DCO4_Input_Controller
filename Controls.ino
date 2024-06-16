@@ -30,14 +30,12 @@ void readControls() {
   read_digitalMux();
 
   if (timer99microsFlag) {
-    if (!presetSaved) {
-      read_encoders_preset_save();
-      read_encoder_buttons_preset_save();
-
-    } else {
+    // if (!presetSaved) {           /// OLD METHOD FOR SAVING PRESETS
+    //   read_encoders_preset_save();
+    //   read_encoder_buttons_preset_save();
+    // } else {
       read_encoders();
       read_encoder_buttons();
-    }
   }
 
   read_AnalogMux();
@@ -72,7 +70,7 @@ void setControlValues() {
     //    ADSR2toVCF = muxAnalogData[5];
     //    LFO1toVCF = muxAnalogData[1];
     ADSR2toVCF = constrain((507 - (analogMedian[pot4ArrayPos] / 8)), 0, 512);
-    LFO1toVCF = constrain((507 - (analogMedian[pot1ArrayPos] / 8)), 0, 512);
+    LFO2toVCF = constrain((507 - (analogMedian[pot1ArrayPos] / 8)), 0, 512);
     //controls_formula_update(5);
   }
   // if (VCAPotsControlManual) {
@@ -132,11 +130,12 @@ void read_digitalMux() {
   //for (activeDigitalMuxChannel = 0; activeDigitalMuxChannel < 16; activeDigitalMuxChannel++) {
 
   muxDigital.channel(activeDigitalMuxChannel);
-  delayMicroseconds(2);
+  delayMicroseconds(1);
   valorMUX1[activeDigitalMuxChannel] = digitalRead(digitalMUX1_PIN_SIG0);
   valorMUX1[activeDigitalMuxChannel + 16] = digitalRead(digitalMUX2_PIN_SIG0);
   valorMUX1[activeDigitalMuxChannel + 32] = digitalRead(digitalMUX3_PIN_SIG0);
   muxAnalogRaw[activeDigitalMuxChannel] = analogRead(muxAnalog_PIN_SIG);
+
   activeDigitalMuxChannel++;
   if (activeDigitalMuxChannel > 15) activeDigitalMuxChannel = 0;
   //}
@@ -168,12 +167,12 @@ void read_encoder_buttons_preset_save() {
     for (int i = 0; i < 13; i++) {
       presetName[i] = presetNameVal[i];
     }
-    writePreset(presetSelectVal);
+    //writePreset(presetSelectVal);
 
     currentPreset = presetSelectVal;
     serial_send_signal(5);
     presetSaved = true;
-    presetSave = false;
+  //  presetSave = false;
     presetChar = 0;
     charSelectVal = 0;
   } else if (button5.released(true)) {

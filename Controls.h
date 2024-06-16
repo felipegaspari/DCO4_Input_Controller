@@ -22,7 +22,7 @@
 #define digitalMUX1_PIN_S2 19
 #define digitalMUX1_PIN_S3 18
 
-#define muxAnalog_PIN_SIG 26
+#define muxAnalog_PIN_SIG 27
 
 #define digitalMUX1_PIN_SIG0 2
 #define digitalMUX2_PIN_SIG0 16
@@ -156,7 +156,8 @@ bool allControlsManual = false;
 bool ADSR3Enabled = false;
 
 bool presetSelect = false;
-bool presetSave = false;
+bool presetSaveSelectMode = false;
+bool presetSaveMode = false;
 bool presetSaved = true;
 
 uint8_t presetSelectVal = 0;
