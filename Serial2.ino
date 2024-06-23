@@ -200,7 +200,7 @@ void sendSerial() {  // to DCO
   }
   if (serialSendADSR3ToOscSelectFlag) {
     if (Serial2.availableForWrite() > 1) {
-      byte byteArray[2] = { (byte)'c', ADSR3ToOscSelect };
+      byte byteArray[2] = { (byte)'c', (uint8_t)ADSR3ToOscSelect };
       Serial2.write(byteArray, 2);
       serialSendADSR3ToOscSelectFlag = false;
     }

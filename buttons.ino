@@ -7,7 +7,7 @@ void read_encoder_buttons() {
 
     ButtonState currentButtonState;
 
-    button.button_n.update(valorMUX1[button.pin], 40, LOW);
+    button.button_n.update(valorMUX1[button.pin], 50, LOW);
 
     if (buttons[i].button_n.held()) {
       currentButtonState = HELD;
@@ -57,29 +57,35 @@ void read_encoder_buttons() {
         sawStatus = !sawStatus;
         //digitalWrite(PIN_SAW1, sawStatus);
         serial_send_param_change(1, !sawStatus);
+        update_LED_Control(LEDPins[0], sawStatus);
         break;
       case TG_SAW2:
         saw2Status = !saw2Status;
         //digitalWrite(PIN_SAW2, saw2Status);
         serial_send_param_change_byte(2, !saw2Status);
+        update_LED_Control(LEDPins[3], saw2Status);
         break;
       case TG_TRI:
         triStatus = !triStatus;
         //digitalWrite(PIN_TRI, triStatus);
         serial_send_param_change_byte(3, !triStatus);
+        update_LED_Control(LEDPins[2], triStatus);
         break;
       case TG_SIN:
         sineStatus = !sineStatus;
         //digitalWrite(PIN_SIN, sineStatus);
         serial_send_param_change_byte(4, !sineStatus);
+        //update_LED_Control();
         break;
       case TG_SQR1:
         sqr1Status = !sqr1Status;
         serial_send_param_change_byte(5, sqr1Status);
+        update_LED_Control(LEDPins[1], sqr1Status);
         break;
       case TG_SQR2:
         sqr2Status = !sqr2Status;
         serial_send_param_change_byte(6, sqr2Status);
+        update_LED_Control(LEDPins[4], sqr2Status);
         break;
 
       case TG_RESO_AMP_COMP:
@@ -88,13 +94,22 @@ void read_encoder_buttons() {
         break;
 
       case TG_ADSR1_RESTART:
-        VCAADSRRestart = !VCAADSRRestart;
-        serial_send_param_change_byte(8, VCAADSRRestart);
+        if (ADSR1CurveSelect == true) {
+          ADSR1CurveSelect = false;
+          serial_send_param_change_byte(48, 100);
+        } else {
+          VCAADSRRestart = !VCAADSRRestart;
+          serial_send_param_change_byte(8, VCAADSRRestart);
+        }
         break;
 
       case TG_ADSR2_RESTART:
-        VCFADSRRestart = !VCFADSRRestart;
-        serial_send_param_change_byte(9, VCFADSRRestart);
+        if (ADSR2CurveSelect == true) {
+          ADSR2CurveSelect = false;
+        } else {
+          VCFADSRRestart = !VCFADSRRestart;
+          serial_send_param_change_byte(9, VCFADSRRestart);
+        }
         break;
 
       case SELECT_LFO_N:
@@ -162,10 +177,10 @@ void read_encoder_buttons() {
         if (presetSaveMode) {
           presetSaveMode = false;
           presetSaveSelectMode = false;
-          
+
           //serial_send_signal(5);
           serial_send_preset_name_to_mainboard();
-          serial_send_param_change_byte(142,presetSelectVal);
+          serial_send_param_change_byte(142, presetSelectVal);
           writePresetActions(presetSelectVal);
         } else {
           if (presetSaveSelectMode) {
@@ -187,14 +202,17 @@ void read_encoder_buttons() {
         faderRow1ControlManual = faderControlManual;
         faderRow2ControlManual = faderControlManual;
         serial_send_param_change_byte(120, faderControlManual);
+        //update_LED_Control();
         break;
       case TG_MAN_FADER_ROW1:
         faderRow1ControlManual = !faderRow1ControlManual;
         serial_send_param_change_byte(121, faderRow1ControlManual);
+        update_LED_Control(LEDPins[10], faderRow1ControlManual);
         break;
       case TG_MAN_FADER_ROW2:
         faderRow2ControlManual = !faderRow2ControlManual;
         serial_send_param_change_byte(122, faderRow2ControlManual);
+        update_LED_Control(LEDPins[11], faderRow2ControlManual);
         break;
       case TG_MAN_POTS:
         potsControlManual = !potsControlManual;
@@ -202,20 +220,24 @@ void read_encoder_buttons() {
         VCAPotsControlManual = potsControlManual;
         PWMPotsControlManual = potsControlManual;
         serial_send_param_change_byte(129, potsControlManual);
+        //update_LED_Control();
         break;
       case TG_MANUAL_VCF_POTS:
         VCFPotsControlManual = !VCFPotsControlManual;
         serial_send_param_change_byte(123, VCFPotsControlManual);
+        update_LED_Control(LEDPins[7], VCFPotsControlManual);
         break;
 
       case TG_MANUAL_VCA_POTS:
         VCAPotsControlManual = !VCAPotsControlManual;
         serial_send_param_change_byte(128, VCAPotsControlManual);
+        update_LED_Control(LEDPins[8], VCAPotsControlManual);
         break;
 
       case TG_MANUAL_PWM_POTS:
         PWMPotsControlManual = !PWMPotsControlManual;
         serial_send_param_change_byte(124, PWMPotsControlManual);
+        update_LED_Control(LEDPins[9], PWMPotsControlManual);
         break;
       case TG_MANUAL_ALL:
         allControlsManual = !allControlsManual;
@@ -224,12 +246,25 @@ void read_encoder_buttons() {
         faderRow1ControlManual = allControlsManual;
         PWMPotsControlManual = allControlsManual;
         serial_send_param_change_byte(125, allControlsManual);
+        //update_LED_Control();
         break;
 
       case TG_ENABLE_ADSR3:
         ADSR3Enabled = !ADSR3Enabled;
         faderRow2ControlManual = false;
         serial_send_param_change_byte(126, (uint8_t)ADSR3Enabled);
+        LED_Control_Mux.blinkPin(LEDPins[11], ADSR3Enabled);
+        update_LED_Control(LEDPins[11], ADSR3Enabled);
+        break;
+
+      case ADSR1_CURVE_SEL:
+        ADSR1CurveSelect = !ADSR1CurveSelect;
+        serial_send_param_change_byte(48, 100);
+        break;
+
+      case ADSR2_CURVE_SEL:
+        ADSR2CurveSelect = !ADSR2CurveSelect;
+        serial_send_param_change_byte(50, 100);
         break;
 
       case SELECT_ENC_ACTION:

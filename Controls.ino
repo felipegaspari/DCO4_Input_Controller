@@ -27,18 +27,21 @@ void init_controls() {
 
 void readControls() {
 
-  read_digitalMux();
+  if (timer1msFlag) {
+    read_digitalMux(1);
+    read_AnalogMux();
+  } else {
+    read_digitalMux(0);
+  }
 
   if (timer99microsFlag) {
     // if (!presetSaved) {           /// OLD METHOD FOR SAVING PRESETS
     //   read_encoders_preset_save();
     //   read_encoder_buttons_preset_save();
     // } else {
-      read_encoders();
-      read_encoder_buttons();
+    read_encoders();
+    read_encoder_buttons();
   }
-
-  read_AnalogMux();
 }
 
 void setControlValues() {
@@ -125,20 +128,23 @@ void read_AnalogMux() {
   // }
 }
 
-void read_digitalMux() {
+void read_digitalMux(bool readPots) {
 
-  //for (activeDigitalMuxChannel = 0; activeDigitalMuxChannel < 16; activeDigitalMuxChannel++) {
+  for (activeDigitalMuxChannel = 0; activeDigitalMuxChannel < 16; activeDigitalMuxChannel++) {
 
-  muxDigital.channel(activeDigitalMuxChannel);
-  delayMicroseconds(1);
-  valorMUX1[activeDigitalMuxChannel] = digitalRead(digitalMUX1_PIN_SIG0);
-  valorMUX1[activeDigitalMuxChannel + 16] = digitalRead(digitalMUX2_PIN_SIG0);
-  valorMUX1[activeDigitalMuxChannel + 32] = digitalRead(digitalMUX3_PIN_SIG0);
-  muxAnalogRaw[activeDigitalMuxChannel] = analogRead(muxAnalog_PIN_SIG);
+    muxDigital.channel(activeDigitalMuxChannel);
+    delayMicroseconds(1);
+    valorMUX1[activeDigitalMuxChannel] = digitalRead(digitalMUX1_PIN_SIG0);
+    valorMUX1[activeDigitalMuxChannel + 16] = digitalRead(digitalMUX2_PIN_SIG0);
+    valorMUX1[activeDigitalMuxChannel + 32] = digitalRead(digitalMUX3_PIN_SIG0);
 
-  activeDigitalMuxChannel++;
-  if (activeDigitalMuxChannel > 15) activeDigitalMuxChannel = 0;
-  //}
+    if (readPots) {
+      muxAnalogRaw[activeDigitalMuxChannel] = analogRead(muxAnalog_PIN_SIG);
+    }
+
+    //activeDigitalMuxChannel++;
+    //if (activeDigitalMuxChannel > 15) activeDigitalMuxChannel = 0;
+  }
 }
 
 void read_encoders_preset_save() {
@@ -172,7 +178,7 @@ void read_encoder_buttons_preset_save() {
     currentPreset = presetSelectVal;
     serial_send_signal(5);
     presetSaved = true;
-  //  presetSave = false;
+    //  presetSave = false;
     presetChar = 0;
     charSelectVal = 0;
   } else if (button5.released(true)) {

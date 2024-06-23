@@ -48,8 +48,9 @@ void serial_send_param_change(byte param, uint16_t paramValue) {
   Serial1.write(bytesArray, 5);
 #endif
 #ifdef ENABLE_SERIAL2
-
-  Serial2.write(bytesArray, 5);
+  if (paramValue != 100) {  // paramValue 100 = send to screen only
+    Serial2.write(bytesArray, 5);
+  }
 #endif
 }
 
@@ -60,12 +61,13 @@ void serial_send_param_change_byte(byte param, byte paramValue) {
   Serial1.write(bytesArray, 4);
 #endif
 #ifdef ENABLE_SERIAL2
-
-  Serial2.write(bytesArray, 4);
+  if (paramValue != 100) {  // paramValue 100 = send to screen only
+    Serial2.write(bytesArray, 4);
+  }
 #endif
 }
 
-void serial_send_preset_name_to_mainboard(){
+void serial_send_preset_name_to_mainboard() {
 
   Serial2.write((char *)"q");
 

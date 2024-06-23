@@ -33,6 +33,8 @@ uint16_t VCALevel = 0;
 
 #include "formulas.h"
 
+#include "LED_control.h"
+
 
 //static const float clockFreq = 168000000;
 
@@ -48,15 +50,16 @@ byte SPIvalOut = 32;
 
 
 void setup() {
-#ifdef ENABLE_SERIAL
-  Serial.begin(2000000);
-#endif
-
   init_controls();
 
   init_aux();
+}
 
+void setup1() {
 
+#ifdef ENABLE_SERIAL
+  Serial.begin(2000000);
+#endif
 #ifdef ENABLE_SERIAL1
   Serial1.setRX(1);
   Serial1.setTX(0);
@@ -72,6 +75,8 @@ void setup() {
   Serial2.setFIFOSize(256);
   Serial2.begin(2500000);
 #endif
+
+  init_LED_control();
 }
 
 void loop1() {
@@ -85,16 +90,27 @@ void loop1() {
     serial_send_manual_controls();
   }
 
+  medianFilter();
 
-  if (timer99microsFlag) {
-    // sendSerial();
+  if (timer5msFlag2) {
+    if (ADSR3Enabled && ADSR3toDETUNE1 != 0) {
+      serialSendADSR3ControlValuesFlag = true;
+    }
   }
+
+  // if (timer99microsFlag2) {
+  // sendSerial();
+  // }
 
   //serial_read_n();
 
-  unsigned long tiempodeejecuciontotal = micros() - loopStartMicros;
+  // unsigned long tiempodeejecuciontotal = micros() - loopStartMicros;
 
-  if (timer200msFlag) {
+  if (timer31msFlag2) {
+    LED_Control_Mux.update();
+  }
+
+  if (timer200msFlag2) {
     //serial_send_param_change(22, ADSR1Level[0]);
     //drawTM(RESONANCE);
     //drawTM(CUTOFF);
@@ -116,25 +132,20 @@ void loop() {
 
   readControls();
 
-  medianFilter();
 
-  if (timer5msFlag) {
-    if (ADSR3Enabled && ADSR3toDETUNE1 != 0) {
-      serialSendADSR3ControlValuesFlag = true;
-    }
-  }
 
-  // if (timer223microsFlag == 1) {
+  // if (timer223microsFlag2 == 1) {
   //   for (int i = 2; i < 20; i++) {
   //     formula_update(i);
   //   }
   // }
 
-  uint32_t j = micros();
+  // uint32_t j = micros();
 
-  tiempodeejecucion = (micros() - j);
+  // tiempodeejecucion = (micros() - j);
 
-  unsigned long tiempodeejecuciontotal = micros() - i;
+  // unsigned long tiempodeejecuciontotal = micros() - i;
+
   //Serial.println(tiempodeejecuciontotal);
   if (timer200msFlag) {
     //serial_send_param_change(22, ADSR1Level[0]);

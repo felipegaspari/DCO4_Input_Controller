@@ -21,6 +21,8 @@ void read_encoders() {
         } else {
           currentAction = actionAltArray[1];
         }
+      } else if (ADSR1CurveSelect == true || ADSR2CurveSelect == true) {
+        currentAction = actionAltArray[2];
       } else if (funcKeyOn) {
         currentAction = actionAltArray[0];
       } else {
@@ -265,6 +267,40 @@ void read_encoders() {
         serial_send_param_change(46, ADSR3toPWM + 512);
         break;
 
+      case ACTION_ADSR_CURVE_ATTACK:
+        {
+          int a = 0;
+          if (direction == DIR_CW) {
+            a = 1;
+          } else {
+            a = -1;
+          }
+          if (ADSR1CurveSelect == true) {
+          ADSR1AttackCurveVal = constrain(ADSR1AttackCurveVal + a, 0, 7);
+          serial_send_param_change_byte(48, (uint8_t)ADSR1AttackCurveVal);
+          } else if (ADSR2CurveSelect == true) {
+             ADSR2AttackCurveVal = constrain(ADSR2AttackCurveVal + a, 0, 7);
+          serial_send_param_change_byte(50, (uint8_t)ADSR2AttackCurveVal);
+          }
+          break;
+        }
+      case ACTION_ADSR_CURVE_DECAY:
+        {
+          int a = 0;
+          if (direction == DIR_CW) {
+            a = 1;
+          } else {
+            a = -1;
+          }
+          if (ADSR1CurveSelect == true) {
+          ADSR1DecayCurveVal = constrain(ADSR1DecayCurveVal + a, 0, 8);
+          serial_send_param_change_byte(49, (uint8_t)ADSR1DecayCurveVal);
+          } else if  (ADSR2CurveSelect == true) {
+            ADSR2DecayCurveVal = constrain(ADSR2DecayCurveVal + a, 0, 8);
+          serial_send_param_change_byte(51, (uint8_t)ADSR2DecayCurveVal);
+          }
+          break;
+        }
       case ACTION_UNISON_DETUNE:
         if (direction == DIR_CW) {
           unisonDetune = unisonDetune + (1 + (0.5 * speed));
