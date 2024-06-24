@@ -153,18 +153,27 @@ void read_encoder_buttons() {
         break;
 
       case PRESET_SAVE_SELECT_MODE:
-        if (presetSaveMode) {
+        if (presetSaveMode) {  // SAVE MODE EXIT
           presetSaveMode = false;
           presetSaveSelectMode = false;
+          charSelectVal = 0;
+          for (int i = 0; i < 12; i++) {
+            presetNameVal[i] = presetName[i];
+          }
+          charSelectVal = 0;
+          presetChar = 0;
+          presetSelectVal = currentPreset;
           serial_send_signal(2);
+          serial_send_preset_scroll(currentPreset, presetName);
         } else {
           presetSaveSelectMode = !presetSaveSelectMode;
           if (presetSaveSelectMode) {
-            // drawTMString("SAVE");
-            serial_send_signal(3);
+            charSelectVal = 0;
+            serial_send_signal(3);  // ENTER SAVE SELECT MODE
           } else {
-            //  drawTMString("LOAD");
-            serial_send_signal(2);
+            serial_send_signal(2);  // SAVE SELECT MODE EXIT
+            serial_send_preset_scroll(currentPreset, presetName);
+            presetSelectVal = currentPreset;
           }
         }
         break;
@@ -181,7 +190,11 @@ void read_encoder_buttons() {
           //serial_send_signal(5);
           serial_send_preset_name_to_mainboard();
           serial_send_param_change_byte(142, presetSelectVal);
-          writePresetActions(presetSelectVal);
+          writePreset(presetSelectVal);
+          //writePresetActions(presetSelectVal);
+
+          serial_send_signal(5);
+
         } else {
           if (presetSaveSelectMode) {
             serial_send_preset_scroll(presetSelectVal, presetNameVal);

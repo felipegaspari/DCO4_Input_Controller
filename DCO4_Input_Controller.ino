@@ -19,8 +19,6 @@ uint16_t RESONANCE;
 uint16_t CUTOFF = 1024;
 uint16_t VCALevel = 0;
 
-#define ENABLE_SD
-
 #include "params.h"
 #include "auxiliary.h"
 
@@ -32,6 +30,8 @@ uint16_t VCALevel = 0;
 #include "encoders.h"
 
 #include "formulas.h"
+
+#include "FS.h"
 
 #include "LED_control.h"
 
@@ -77,6 +77,9 @@ void setup1() {
 #endif
 
   init_LED_control();
+
+  initFS();
+  
 }
 
 void loop1() {
@@ -87,7 +90,7 @@ void loop1() {
 
   if (timer1msFlag2) {
     setControlValues();  //LO HACE EL INPUT BOARD
-    serial_send_manual_controls();
+    serial_send_manual_controls(false);
   }
 
   medianFilter();

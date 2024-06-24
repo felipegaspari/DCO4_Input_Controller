@@ -276,11 +276,11 @@ void read_encoders() {
             a = -1;
           }
           if (ADSR1CurveSelect == true) {
-          ADSR1AttackCurveVal = constrain(ADSR1AttackCurveVal + a, 0, 7);
-          serial_send_param_change_byte(48, (uint8_t)ADSR1AttackCurveVal);
+            ADSR1AttackCurveVal = constrain(ADSR1AttackCurveVal + a, 0, 7);
+            serial_send_param_change_byte(48, (uint8_t)ADSR1AttackCurveVal);
           } else if (ADSR2CurveSelect == true) {
-             ADSR2AttackCurveVal = constrain(ADSR2AttackCurveVal + a, 0, 7);
-          serial_send_param_change_byte(50, (uint8_t)ADSR2AttackCurveVal);
+            ADSR2AttackCurveVal = constrain(ADSR2AttackCurveVal + a, 0, 7);
+            serial_send_param_change_byte(50, (uint8_t)ADSR2AttackCurveVal);
           }
           break;
         }
@@ -293,11 +293,11 @@ void read_encoders() {
             a = -1;
           }
           if (ADSR1CurveSelect == true) {
-          ADSR1DecayCurveVal = constrain(ADSR1DecayCurveVal + a, 0, 8);
-          serial_send_param_change_byte(49, (uint8_t)ADSR1DecayCurveVal);
-          } else if  (ADSR2CurveSelect == true) {
+            ADSR1DecayCurveVal = constrain(ADSR1DecayCurveVal + a, 0, 8);
+            serial_send_param_change_byte(49, (uint8_t)ADSR1DecayCurveVal);
+          } else if (ADSR2CurveSelect == true) {
             ADSR2DecayCurveVal = constrain(ADSR2DecayCurveVal + a, 0, 8);
-          serial_send_param_change_byte(51, (uint8_t)ADSR2DecayCurveVal);
+            serial_send_param_change_byte(51, (uint8_t)ADSR2DecayCurveVal);
           }
           break;
         }
@@ -319,12 +319,16 @@ void read_encoders() {
         }
         if (presetSaveSelectMode) {
           presetSelectVal = constrain(presetSelectVal, 0, 255);
-          //load_preset_name(presetSelectVal);
-          serial_send_param_change_byte(140, presetSelectVal);
+
+          //serial_send_param_change_byte(140, presetSelectVal);
+          byte presetNameScroll[12];
+          get_preset_name(presetSelectVal, presetNameScroll);
+          serial_send_preset_scroll(presetSelectVal, presetNameScroll);
         } else {
           presetSelectVal = constrain(presetSelectVal, 0, 255);
-          loadPresetActions(presetSelectVal);
-          serial_send_param_change_byte(141, presetSelectVal);
+
+          loadPreset(presetSelectVal);
+          //serial_send_param_change_byte(141, presetSelectVal);
         }
         break;
 

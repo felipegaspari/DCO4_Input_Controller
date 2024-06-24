@@ -23,6 +23,9 @@ bool serialSendADSR3ControlValuesFlag = false;
 bool serialSendADSR3toDCOFlag = false;
 bool serialSendADSR3ToOscSelectFlag = false;
 
+void serial_send_param_change_byte(byte param, byte paramValue, bool sendToAll = true); 
+void serial_send_param_change(byte param, uint16_t paramValue, bool sendToAll = true); 
+
 #endif
 
 /*

@@ -25,8 +25,8 @@ void sendParams() {
   }
 }
 
-void serial_send_manual_controls() {
-  if (faderRow1ControlManual) {
+void serial_send_manual_controls(bool presetLoading) {
+  if (faderRow1ControlManual || presetLoading) {
     byte dataArray[8];
 
     dataArray[0] = highByte(ADSR1_attack);
@@ -42,7 +42,7 @@ void serial_send_manual_controls() {
     Serial2.write(dataArray, 8);
   }
 
-  if (faderRow2ControlManual && !ADSR3Enabled) {
+  if ((faderRow2ControlManual && !ADSR3Enabled)  || presetLoading) {
     byte dataArray[8];
 
     dataArray[0] = highByte(ADSR2_attack);
@@ -56,7 +56,8 @@ void serial_send_manual_controls() {
 
     Serial2.write((char *)"b");
     Serial2.write(dataArray, 8);
-  } else if (faderRow2ControlManual && ADSR3Enabled) {
+  } 
+  if ((faderRow2ControlManual && ADSR3Enabled)  || presetLoading) {
     byte dataArray[8];
     dataArray[0] = highByte(ADSR3_attack);
     dataArray[1] = lowByte(ADSR3_attack);
@@ -71,7 +72,7 @@ void serial_send_manual_controls() {
     Serial2.write(dataArray, 8);
   }
 
-  if (VCFPotsControlManual) {
+  if (VCFPotsControlManual  || presetLoading) {
     byte dataArray[8];
     dataArray[0] = highByte(CUTOFF);
     dataArray[1] = lowByte(CUTOFF);
@@ -86,7 +87,7 @@ void serial_send_manual_controls() {
     Serial2.write(dataArray, 8);
   }
 
-  if (VCAPotsControlManual) {
+  if (VCAPotsControlManual  || presetLoading) {
     byte dataArray[2];
 
     dataArray[0] = highByte(ADSR1toVCA);
@@ -96,7 +97,7 @@ void serial_send_manual_controls() {
     Serial2.write(dataArray, 2);
   }
 
-  if (PWMPotsControlManual) {
+  if (PWMPotsControlManual  || presetLoading) {
     byte dataArray[2];
 
     dataArray[0] = highByte(PW);
