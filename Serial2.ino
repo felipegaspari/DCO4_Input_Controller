@@ -1,42 +1,19 @@
-void sendParams() {
-
-  // ENABLE IF DETUNE1 is serial
-  // DETUNE1 = ((float)LFO1Level * LFO1toDCO_formula) + ((float)ADSR3Level[0] * ADSR3toDETUNE1_formula) + 1 /* + RANDOMNESS1*/;
-  // if (DETUNE1 < 0) {
-  //   DETUNE1 = 0;
-  // }
-  DETUNE2 = (uint8_t)((float)(LFO2Level + LFO2_CC_HALF) / 4096 * LFO2toOSC2DETUNE) + OSC2Detune;
-  //DETUNE1 = 2.00f;
-  //DETUNE2 = 127;
-
-  byte *b = (byte *)&DETUNE1;
-  byte dataArray[5];
-  byte ndata = 0;
-
-  dataArray[0] = b[0];
-  dataArray[1] = b[1];
-  dataArray[2] = b[2];
-  dataArray[3] = b[3];
-  dataArray[4] = (uint8_t)DETUNE2;
-
-  if (Serial2.availableForWrite() > 5) {
-    Serial2.write((char *)"p");
-    Serial2.write(dataArray, 5);
-  }
-}
-
 void serial_send_manual_controls(bool presetLoading) {
   if (faderRow1ControlManual || presetLoading) {
     byte dataArray[8];
 
-    dataArray[0] = highByte(ADSR1_attack);
-    dataArray[1] = lowByte(ADSR1_attack);
-    dataArray[2] = highByte(ADSR1_decay);
-    dataArray[3] = lowByte(ADSR1_decay);
+uint16_t ADSR1_attack_serial = linToExpLookup[ADSR1_attack];
+uint16_t ADSR1_decay_serial = linToExpLookup[ADSR1_decay];
+uint16_t ADSR1_release_serial = linToExpLookup[ADSR1_release];
+
+    dataArray[0] = highByte(ADSR1_attack_serial);
+    dataArray[1] = lowByte(ADSR1_attack_serial);
+    dataArray[2] = highByte(ADSR1_decay_serial);
+    dataArray[3] = lowByte(ADSR1_decay_serial);
     dataArray[4] = highByte(ADSR1_sustain);
     dataArray[5] = lowByte(ADSR1_sustain);
-    dataArray[6] = highByte(ADSR1_release);
-    dataArray[7] = lowByte(ADSR1_release);
+    dataArray[6] = highByte(ADSR1_release_serial);
+    dataArray[7] = lowByte(ADSR1_release_serial);
 
     Serial2.write((char *)"a");
     Serial2.write(dataArray, 8);
@@ -45,28 +22,39 @@ void serial_send_manual_controls(bool presetLoading) {
   if ((faderRow2ControlManual && !ADSR3Enabled)  || presetLoading) {
     byte dataArray[8];
 
-    dataArray[0] = highByte(ADSR2_attack);
-    dataArray[1] = lowByte(ADSR2_attack);
-    dataArray[2] = highByte(ADSR2_decay);
-    dataArray[3] = lowByte(ADSR2_decay);
+uint16_t ADSR2_attack_serial = linToExpLookup[ADSR2_attack];
+uint16_t ADSR2_decay_serial = linToExpLookup[ADSR2_decay];
+uint16_t ADSR2_release_serial = linToExpLookup[ADSR2_release];
+
+
+    dataArray[0] = highByte(ADSR2_attack_serial);
+    dataArray[1] = lowByte(ADSR2_attack_serial);
+    dataArray[2] = highByte(ADSR2_decay_serial);
+    dataArray[3] = lowByte(ADSR2_decay_serial);
     dataArray[4] = highByte(ADSR2_sustain);
     dataArray[5] = lowByte(ADSR2_sustain);
-    dataArray[6] = highByte(ADSR2_release);
-    dataArray[7] = lowByte(ADSR2_release);
+    dataArray[6] = highByte(ADSR2_release_serial);
+    dataArray[7] = lowByte(ADSR2_release_serial);
 
     Serial2.write((char *)"b");
     Serial2.write(dataArray, 8);
   } 
   if ((faderRow2ControlManual && ADSR3Enabled)  || presetLoading) {
     byte dataArray[8];
-    dataArray[0] = highByte(ADSR3_attack);
-    dataArray[1] = lowByte(ADSR3_attack);
-    dataArray[2] = highByte(ADSR3_decay);
-    dataArray[3] = lowByte(ADSR3_decay);
+
+ uint16_t ADSR3_attack_serial = linToExpLookup[ADSR3_attack];
+ uint16_t ADSR3_decay_serial = linToExpLookup[ADSR3_decay];
+ uint16_t ADSR3_release_serial = linToExpLookup[ADSR3_release];
+
+
+    dataArray[0] = highByte(ADSR3_attack_serial);
+    dataArray[1] = lowByte(ADSR3_attack_serial);
+    dataArray[2] = highByte(ADSR3_decay_serial);
+    dataArray[3] = lowByte(ADSR3_decay_serial);
     dataArray[4] = highByte(ADSR3_sustain);
     dataArray[5] = lowByte(ADSR3_sustain);
-    dataArray[6] = highByte(ADSR3_release);
-    dataArray[7] = lowByte(ADSR3_release);
+    dataArray[6] = highByte(ADSR3_release_serial);
+    dataArray[7] = lowByte(ADSR3_release_serial);
 
     Serial2.write((char *)"c");
     Serial2.write(dataArray, 8);
@@ -110,18 +98,10 @@ void serial_send_manual_controls(bool presetLoading) {
 
 void sendSerial() {  // to DCO
 
-  if (sendDetune2Flag) {
-    if (Serial2.availableForWrite() > 1) {
-      DETUNE2 = (uint8_t)((float)(LFO2Level + LFO2_CC_HALF) / 4096 * LFO2toOSC2DETUNE) + OSC2Detune;
-      byte byteArray[2] = { (uint8_t)'q', (uint8_t)DETUNE2 };
-      Serial2.write(byteArray, 2);
-      sendDetune2Flag = false;
-    }
-  }
 
   if (serial_send_portamentoFlag) {
     if (Serial2.availableForWrite() > 1) {
-      byte byteArray[2] = { (uint8_t)'r', portamentoTime };
+      byte byteArray[2] = { (uint8_t)'r', (uint8_t)portamentoTime };
       Serial2.write(byteArray, 2);
       serial_send_portamentoFlag = false;
     }
@@ -129,7 +109,7 @@ void sendSerial() {  // to DCO
 
   if (serial_send_oscSyncModeFlag) {
     if (Serial2.availableForWrite() > 1) {
-      byte byteArray[2] = { (uint8_t)'t', oscSyncMode };
+      byte byteArray[2] = { (uint8_t)'t', (uint8_t)oscSyncMode };
       Serial2.write(byteArray, 2);
       serial_send_oscSyncModeFlag = false;
     }
@@ -137,7 +117,7 @@ void sendSerial() {  // to DCO
 
   if (serial_send_OSC1IntervalFlag) {
     if (Serial2.availableForWrite() > 1) {
-      byte byteArray[2] = { (uint8_t)'y', OSC1Interval };
+      byte byteArray[2] = { (uint8_t)'y', (uint8_t)OSC1Interval };
       Serial2.write(byteArray, 2);
       serial_send_OSC1IntervalFlag = false;
     }
@@ -145,7 +125,7 @@ void sendSerial() {  // to DCO
 
   if (serial_send_OSC2IntervalFlag) {
     if (Serial2.availableForWrite() > 1) {
-      byte byteArray[2] = { (uint8_t)'z', OSC2Interval };
+      byte byteArray[2] = { (uint8_t)'z', (uint8_t)OSC2Interval };
       Serial2.write(byteArray, 2);
       serial_send_OSC2IntervalFlag = false;
     }
@@ -153,7 +133,7 @@ void sendSerial() {  // to DCO
 
   if (serial_send_LFO1SpeedFlag) {
     if (Serial2.availableForWrite() > 2) {
-      byte *b = (byte *)&LFO1SpeedVal;
+      byte *b = (byte *)&LFO1Speed;
       byte byteArray[3] = { (byte)'l', b[0], b[1] };
       Serial2.write(byteArray, 3);
       serial_send_LFO1SpeedFlag = false;
@@ -162,7 +142,7 @@ void sendSerial() {  // to DCO
 
   if (serial_send_LFO1toDCOFlag) {
     if (Serial2.availableForWrite() > 2) {
-      byte *b = (byte *)&LFO1toDCOVal;
+      byte *b = (byte *)&LFO1toDCO;
       byte byteArray[3] = { (byte)'m', b[0], b[1] };
       Serial2.write(byteArray, 3);
       serial_send_LFO1toDCOFlag = false;
@@ -171,7 +151,7 @@ void sendSerial() {  // to DCO
 
   if (serial_send_LFO1toDCOWaveChangeFlag) {
     if (Serial2.availableForWrite() > 1) {
-      byte byteArray[2] = { (uint8_t)'b', LFO1Waveform };
+      byte byteArray[2] = { (uint8_t)'b', (uint8_t)LFO1Waveform };
       Serial2.write(byteArray, 2);
       serial_send_LFO1toDCOWaveChangeFlag = false;
     }

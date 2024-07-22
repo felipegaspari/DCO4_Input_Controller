@@ -161,7 +161,7 @@ bool presetSaveMode = false;
 bool presetSaved = true;
 
 uint8_t presetSelectVal = 0;
-byte presetChar = 0;
+byte presetCharPos = 0;
 byte charSelectVal = 0;
 
 byte presetNameVal[17] = { 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32 };

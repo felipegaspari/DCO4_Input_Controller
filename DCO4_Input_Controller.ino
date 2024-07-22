@@ -4,20 +4,20 @@
 
 #define NUM_VOICES 2
 
-byte OSC1Interval = 24;
-byte OSC2Interval = 24;
-uint16_t OSC2Detune = 255;
+int8_t OSC1Interval = 24;
+int8_t OSC2Interval = 24;
+int16_t OSC2Detune = 0;
 float DETUNE1;
 float DETUNE2;
 uint16_t PW;
 
-uint16_t SubLevel;
-uint16_t SQR1Level;
-uint16_t SQR2Level;
+int16_t SubLevel;
+int16_t SQR1Level;
+int16_t SQR2Level;
 
 uint16_t RESONANCE;
 uint16_t CUTOFF = 1024;
-uint16_t VCALevel = 0;
+int16_t VCALevel = 0;
 
 #include "params.h"
 #include "auxiliary.h"
@@ -36,23 +36,13 @@ uint16_t VCALevel = 0;
 #include "LED_control.h"
 
 
-//static const float clockFreq = 168000000;
-
-uint32_t i;
-byte h;
-int val2;
-uint32_t contadorLatencia = 0;
 
 uint32_t tiempodeejecucion;
-
-byte SPIvalOut = 32;
-
-
+unsigned long loopStartTime;
 
 void setup() {
   init_controls();
-
-  init_aux();
+  init_tables();
 }
 
 void setup1() {
@@ -64,7 +54,7 @@ void setup1() {
   Serial1.setRX(1);
   Serial1.setTX(0);
   Serial1.setPollingMode(true);
-  Serial1.setFIFOSize(256);
+  Serial1.setFIFOSize(512);
   Serial1.begin(2500000);
 #endif
 
@@ -72,14 +62,17 @@ void setup1() {
   Serial2.setRX(5);
   Serial2.setTX(4);
   Serial2.setPollingMode(true);
-  Serial2.setFIFOSize(256);
+  Serial2.setFIFOSize(512);
   Serial2.begin(2500000);
 #endif
 
   init_LED_control();
 
   initFS();
-  
+
+  pinMode(PIN_LED_PWM, OUTPUT);
+  analogWriteFreq(200000);
+  analogWrite(PIN_LED_PWM, 245);
 }
 
 void loop1() {
@@ -92,8 +85,6 @@ void loop1() {
     setControlValues();  //LO HACE EL INPUT BOARD
     serial_send_manual_controls(false);
   }
-
-  medianFilter();
 
   if (timer5msFlag2) {
     if (ADSR3Enabled && ADSR3toDETUNE1 != 0) {
@@ -124,24 +115,14 @@ void loop1() {
 
 void loop() {
 
-  i = micros();
+  // loopStartTime = micros();
 
-  //RANDOMNESS1 = (float)random1 / 1440000 * randomnessIntensity1;
-  //RANDOMNESS2 = random2 * randomnessIntensity2;
+  // RANDOMNESS1 = (float)random1 / 1440000 * randomnessIntensity1;
+  // RANDOMNESS2 = random2 * randomnessIntensity2;
 
   millisTimer();
 
-
-
   readControls();
-
-
-
-  // if (timer223microsFlag2 == 1) {
-  //   for (int i = 2; i < 20; i++) {
-  //     formula_update(i);
-  //   }
-  // }
 
   // uint32_t j = micros();
 
@@ -169,9 +150,9 @@ void loop() {
 
 #ifdef ENABLE_SERIAL
   //drawTM(tiempodeejecucion);
-  if (1 == 1) {
+  //if (1 == 1) {
     //if (timer99microsFlag) {58
-    //if (timer31msFlag) {
+    if (timer200msFlag) {
     // if (tiempodeejecuciontotal > 100 ) {
     //    contadorLatencia++;
     //    float tiemposobrelatencia = (float) micros() / contadorLatencia; // baseline = 5000
@@ -215,10 +196,9 @@ void loop() {
     //Serial.print((String)" -enc6" + encVal[5]);
 
     for (int i = 0; i < 16; i++) {
-      if (i != 9 && i != 8) {
-        //Serial.print((String) "MuxAnalog" + (int)i + (String) " " + (uint16_t)muxAnalogData[i] + (String) "; ");
-        Serial.print((String) " Raw" + (int)i + (String) ": " + (uint16_t)muxAnalogRaw[i] + (String) " ---  ");
-      }
+
+      //Serial.print((String) "MuxAnalog" + (int)i + (String) " " + (uint16_t)muxAnalogData[i] + (String) "; ");
+      Serial.print((String) " Raw" + (int)i + (String) " " + /*(uint16_t)muxAnalogRaw[i]*/ (uint16_t)muxAnalogData[i] + (String) ";   ");
     }
     //  for (int i = 0; i < 8; i++) {
     //    Serial.print((String)" -MuxFader" + (int)i + (String)": " + (uint16_t)faderMedian[i]);

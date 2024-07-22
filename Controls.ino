@@ -47,85 +47,74 @@ void readControls() {
 void setControlValues() {
 
   if (faderRow1ControlManual) {
-    ADSR1_attack = faderExpConverter(analogMedian[fader1ArrayPos]);
-    ADSR1_decay = faderExpConverter(analogMedian[fader2ArrayPos]);
-    ADSR1_sustain = analogMedian[fader3ArrayPos];
-    ADSR1_release = faderExpConverter(analogMedian[fader4ArrayPos]);
+    ADSR1_attack = map(constrain(muxAnalogData[fader1ArrayPos], 20, 4085), 20, 4085, 0, 4095);
+    ADSR1_decay = map(constrain(muxAnalogData[fader2ArrayPos], 20, 4085), 20, 4085, 0, 4095);
+    ADSR1_sustain = map(constrain(muxAnalogData[fader3ArrayPos], 20, 4085), 20, 4085, 0, 4095);
+    ADSR1_release = map(constrain(muxAnalogData[fader4ArrayPos], 20, 4085), 20, 4085, 0, 4095);
   }
 
   if (faderRow2ControlManual) {
     if (ADSR3Enabled) {
-      ADSR3_attack = faderExpConverter(analogMedian[fader5ArrayPos]);
-      ADSR3_decay = faderExpConverter(analogMedian[fader6ArrayPos]);
-      ADSR3_sustain = analogMedian[fader7ArrayPos];
-      ADSR3_release = faderExpConverter(analogMedian[fader8ArrayPos]);
+      ADSR3_attack = map(constrain(muxAnalogData[fader5ArrayPos], 20, 4085), 20, 4085, 0, 4095);
+      ADSR3_decay = map(constrain(muxAnalogData[fader6ArrayPos], 20, 4085), 20, 4085, 0, 4095);
+      ADSR3_sustain = map(constrain(muxAnalogData[fader7ArrayPos], 20, 4085), 20, 4085, 0, 4095);
+      ADSR3_release = map(constrain(muxAnalogData[fader8ArrayPos], 20, 4085), 20, 4085, 0, 4095);
     } else {
-      ADSR2_attack = faderExpConverter(analogMedian[fader5ArrayPos]);
-      ADSR2_decay = faderExpConverter(analogMedian[fader6ArrayPos]);
-      ADSR2_sustain = analogMedian[fader7ArrayPos];
-      ADSR2_release = faderExpConverter(analogMedian[fader8ArrayPos]);
+      ADSR2_attack = map(constrain(muxAnalogData[fader5ArrayPos], 20, 4085), 20, 4085, 0, 4095);
+      ADSR2_decay = map(constrain(muxAnalogData[fader6ArrayPos], 20, 4085), 20, 4085, 0, 4095);
+      ADSR2_sustain = map(constrain(muxAnalogData[fader7ArrayPos], 20, 4085), 20, 4085, 0, 4095);
+      ADSR2_release = map(constrain(muxAnalogData[fader8ArrayPos], 20, 4085), 20, 4085, 0, 4095);
     }
   }
 
   if (VCFPotsControlManual) {
-    CUTOFF = 4095 - analogMedian[pot2ArrayPos];
-    RESONANCE = analogMedian[pot3ArrayPos];
+    CUTOFF = map(constrain( muxAnalogData[pot2ArrayPos], 20, 4085), 20, 4085, 4095, 0);
+    RESONANCE = map(constrain(muxAnalogData[pot3ArrayPos], 20, 4085), 20, 4085, 4095, 0);
     //    ADSR2toVCF = muxAnalogData[5];
     //    LFO1toVCF = muxAnalogData[1];
-    ADSR2toVCF = constrain((507 - (analogMedian[pot4ArrayPos] / 8)), 0, 512);
-    LFO2toVCF = constrain((507 - (analogMedian[pot1ArrayPos] / 8)), 0, 512);
-    //controls_formula_update(5);
+    ADSR2toVCF = constrain((507 - (muxAnalogData[pot4ArrayPos] / 8)), 0, 512);
+    LFO2toVCF = constrain((507 - (muxAnalogData[pot1ArrayPos] / 8)), 0, 512);
   }
   // if (VCAPotsControlManual) {
   if (VCAPotsControlManual) {
-    //ADSR1toVCA = constrain((507 - (analogMedian[6]/ 8)), 0, 4095);
-    ADSR1toVCA = 512 - (analogMedian[pot5ArrayPos] / 8);
+    //ADSR1toVCA = constrain((507 - (muxAnalogData[6]/ 8)), 0, 4095);
+    ADSR1toVCA = 512 - (muxAnalogData[pot5ArrayPos] / 8);
   }
   if (PWMPotsControlManual) {
-    PW = analogMedian[pot6ArrayPos];
+    PW = map(constrain(muxAnalogData[pot6ArrayPos], 20, 4085), 20, 4085, 0, 4095);
   }
 
-  if (RESONANCEAmpCompensation) {
-    if (RESONANCE <= 2100) {
-      VCAResonanceCompensation = (float)RESONANCE / 2100 * 2.25;
-    } else if (RESONANCE <= 3720) {
-      VCAResonanceCompensation = ((float)constrain((3720 - RESONANCE), 0, 1200) / 960) + 1;
-    } else {
-      VCAResonanceCompensation = 1;
-    }
-  }
+  // if (RESONANCEAmpCompensation) {
+  //   if (RESONANCE <= 2100) {
+  //     VCAResonanceCompensation = (float)RESONANCE / 2100 * 2.25;
+  //   } else if (RESONANCE <= 3720) {
+  //     VCAResonanceCompensation = ((float)constrain((3720 - RESONANCE), 0, 1200) / 960) + 1;
+  //   } else {
+  //     VCAResonanceCompensation = 1;
+  //   }
+  // }
 }
 
 void read_AnalogMux() {
 
   for (uint8_t i = 0; i < 16; i++) {
 
+muxAnalogData[i] = simpleKalmanFilter[i+16].updateEstimate(simpleKalmanFilter[i].updateEstimate(muxAnalogRaw[i]));
+
     // muxAnalog.channel(i);
     // delayMicroseconds(2);
     // muxAnalogRaw[i] = analogRead(muxAnalog_PIN_SIG);
 
-    if (muxAnalogRaw[i] > (((muxAnalogDataPrev[i] + analogMedian[i]) / 2) + 10)) {
-      muxAnalogData[i] = (muxAnalogRaw[i] + analogMedian[i] + muxAnalogDataPrev[i] - 8) / 3;
-    } else if (muxAnalogRaw[i] < (((muxAnalogDataPrev[i] + analogMedian[i]) / 2) - 10)) {
-      muxAnalogData[i] = (muxAnalogRaw[i] + analogMedian[i] + muxAnalogDataPrev[i] + 8) / 3;
-    }
+    // if (muxAnalogRaw[i] > (((muxAnalogDataPrev[i] + analogMedian[i]) / 2) + 10)) {
+    //   muxAnalogData[i] = (muxAnalogRaw[i] + analogMedian[i] + muxAnalogDataPrev[i] - 8) / 3;
+    // } else if (muxAnalogRaw[i] < (((muxAnalogDataPrev[i] + analogMedian[i]) / 2) - 10)) {
+    //   muxAnalogData[i] = (muxAnalogRaw[i] + analogMedian[i] + muxAnalogDataPrev[i] + 8) / 3;
+    // }
 
-    // muxAnalogDataPrev[i] = analogMedian[i];
-    // muxAnalogDataPrev[i] = (muxAnalogRaw[i] + analogMedian[i]) / 2;
-    muxAnalogDataPrev[i] = (muxAnalogData[i] + analogMedian[i]) / 2;
+    // // muxAnalogDataPrev[i] = analogMedian[i];
+    // // muxAnalogDataPrev[i] = (muxAnalogRaw[i] + analogMedian[i]) / 2;
+    // muxAnalogDataPrev[i] = (muxAnalogData[i] + analogMedian[i]) / 2;
   }
-  // for (uint8_t i = 0; i < 8; i++) {
-  //   muxPotsRaw[i] = muxAnalog.read(i + 8);
-  //   //        if ( muxPotsRaw[i] > (((muxAnalogDataPrev[i] + analogMedian[i]) / 2) + 10)) {
-  //   //      muxAnalogData[i] = (muxPotsRaw[i] + analogMedian[i] - 8) / 2;
-  //   //    } else if (muxPotsRaw[i] < (((muxAnalogDataPrev[i] + analogMedian[i]) / 2) - 10)) {
-  //   //      muxAnalogData[i] = (muxPotsRaw[i] + analogMedian[i] + 8) / 2;
-  //   //    }
-
-  //   //    muxAnalogData[i] = muxPotsRaw[i];
-  //   muxAnalogData[i] = (muxPotsRaw[i] + muxAnalogDataPrev[i] + analogMedian[i]) / 3;
-  //   muxAnalogDataPrev[i] = (muxPotsRaw[i] + analogMedian[i]) / 2;
-  // }
 }
 
 void read_digitalMux(bool readPots) {
@@ -157,7 +146,7 @@ void read_encoders_preset_save() {
       charSelectVal = charSelectVal - (1 + (0.5 * enc5.speed()));
     }
     charSelectVal = constrain(charSelectVal, 32, 255);
-    presetNameVal[presetChar] = charSelectVal;
+    presetNameVal[presetCharPos] = charSelectVal;
     serial_send_preset_scroll(presetSelectVal, presetNameVal);
 
     byte presetName4Chars[4];
@@ -179,16 +168,16 @@ void read_encoder_buttons_preset_save() {
     serial_send_signal(5);
     presetSaved = true;
     //  presetSave = false;
-    presetChar = 0;
+    presetCharPos = 0;
     charSelectVal = 0;
   } else if (button5.released(true)) {
-    presetChar++;
+    presetCharPos++;
 
-    if (presetChar > 11) {
-      presetChar = 0;
+    if (presetCharPos > 11) {
+      presetCharPos = 0;
     }
-    charSelectVal = presetNameVal[presetChar];
-    serial_send_save_char_select(presetChar);
+    charSelectVal = presetNameVal[presetCharPos];
+    serial_send_save_char_select(presetCharPos);
   }
 }
 

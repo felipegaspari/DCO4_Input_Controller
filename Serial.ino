@@ -50,22 +50,22 @@ void serial_send_param_change(byte param, uint16_t paramValue, bool sendToAll) {
   }
 #endif
 #ifdef ENABLE_SERIAL2
-  if (paramValue != 100) {  // paramValue 100 = send to screen only
+  if (paramValue != -1) {  // paramValue 100 = send to screen only
     Serial2.write(bytesArray, 5);
   }
 #endif
 }
 
 void serial_send_param_change_byte(byte param, byte paramValue, bool sendToAll) {
-  byte bytesArray[4] = { (uint8_t)'w', param, paramValue, finishByte };
+  byte bytesArrayByte[4] = { (uint8_t)'w', param, paramValue, finishByte };
 #ifdef ENABLE_SERIAL1
   if (sendToAll) {
-    Serial1.write(bytesArray, 4);
+    Serial1.write(bytesArrayByte, 4);
   }
 #endif
 #ifdef ENABLE_SERIAL2
-  if (paramValue != 100) {  // paramValue 100 = send to screen only
-    Serial2.write(bytesArray, 4);
+  if (paramValue != -1) {  // paramValue 100 = send to screen only
+    Serial2.write(bytesArrayByte, 4);
   }
 #endif
 }
@@ -74,7 +74,7 @@ void serial_send_preset_name_to_mainboard() {
 
   Serial2.write((char *)"q");
 
-  Serial2.write(presetNameVal, 8);
+  Serial2.write(presetNameVal, 12);
 
   Serial2.write(finishByte);
 }
@@ -87,7 +87,7 @@ void serial_send_preset_scroll(byte presetNumber, byte presetNameSerial[]) {
 
   Serial1.write(presetNumber);
 
-  Serial1.write(presetNameSerial, 8);
+  Serial1.write(presetNameSerial, 12);
 
   Serial1.write(finishByte);
 #endif
