@@ -19,6 +19,9 @@ byte noiseLevel = 0;
 // encoder values
 int16_t calibrationVal;
 //
+bool manualCalibration = false;
+int8_t manualCalibrationStage = 0;
+int8_t manualCalibrationInitAmpCompOffset[NUM_OSCILLATORS] = {0,0,0,0,0,0,0,0};  
 
 int8_t velocityToVCF = 0;
 int8_t velocityToVCA = 0;
@@ -44,13 +47,13 @@ byte currentPreset;
 
 /// LFO
 
-static const uint16_t LFO1_CC = 4095;
-static const uint16_t LFO1_CC_HALF = LFO1_CC / 2;
-static const uint16_t LF01_CC_THIRD = LFO1_CC / 3;
-static const uint16_t LFO2_CC = 4095;
-static const uint16_t LFO2_CC_HALF = LFO2_CC / 2;
-static const uint16_t LFO3_CC = 4095;
-static const uint16_t LFO3_CC_HALF = LFO2_CC / 2;
+static constexpr uint16_t LFO1_CC = 4095;
+static constexpr uint16_t LFO1_CC_HALF = LFO1_CC / 2;
+static constexpr uint16_t LF01_CC_THIRD = LFO1_CC / 3;
+static constexpr uint16_t LFO2_CC = 4095;
+static constexpr uint16_t LFO2_CC_HALF = LFO2_CC / 2;
+static constexpr uint16_t LFO3_CC = 4095;
+static constexpr uint16_t LFO3_CC_HALF = LFO2_CC / 2;
 
 int16_t LFO1Level;
 int8_t LFO1Waveform;

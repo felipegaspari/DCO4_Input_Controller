@@ -48,7 +48,8 @@ enum EncoderAction {
 
   ACTION_select_char_pos,
   
-  ACTION_calibration
+  ACTION_CALIBRATION_OFFSET, 
+  ACTION_CALIBRATION_STAGE,
 };
 
 struct EncoderStruct {
@@ -77,5 +78,7 @@ EncoderStruct encoders[] = {
   { enc10, 42, 17, ACTION_LFO1_to_VCA,   ACTION_NONE,             ACTION_NONE,        ACTION_VCA_level,            ACTION_NONE,                ACTION_NONE,               false },
   { enc11, 18, 19, ACTION_LFO2_to_PWM,   ACTION_NONE,             ACTION_NONE,        ACTION_ADSR3_to_PWM,         ACTION_NONE,                ACTION_NONE,               false },
 };
+
+EncoderAction manualCalibrationActions[] = { ACTION_NONE, ACTION_NONE, ACTION_NONE, ACTION_NONE, ACTION_NONE, ACTION_NONE, ACTION_NONE, ACTION_CALIBRATION_OFFSET, ACTION_CALIBRATION_STAGE, ACTION_NONE, ACTION_NONE};
 
 #endif

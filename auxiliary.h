@@ -3,13 +3,13 @@
 
 #include <SimpleKalmanFilter.h>
 
-static const float e_mea = 30;  // Measurement Uncertainty 
-static const float e_est = 25;  // Estimation Uncertainty 
-static const float q_value = 0.02;    // Process Noise
+static constexpr float e_mea = 30;  // Measurement Uncertainty 
+static constexpr float e_est = 25;  // Estimation Uncertainty 
+static constexpr float q_value = 0.02;    // Process Noise
 
-static const float e_mea_2 = 2;  // Measurement Uncertainty 
-static const float e_est_2 = 2;  // Estimation Uncertainty 
-static const float q_value_2 = 0.01;    // Process Noise
+static constexpr float e_mea_2 = 2;  // Measurement Uncertainty 
+static constexpr float e_est_2 = 2;  // Estimation Uncertainty 
+static constexpr float q_value_2 = 0.01;    // Process Noise
 
 SimpleKalmanFilter simpleKalmanFilter[32] = {
 SimpleKalmanFilter(e_mea, e_est, q_value),

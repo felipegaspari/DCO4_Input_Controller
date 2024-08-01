@@ -15,26 +15,36 @@ void read_encoders() {
     if (direction) {
       speed = encoder.MD_REncoder_Name.speed();
 
-      if (presetSaveSelectMode) {
-        if (presetSaveMode) {
-          currentAction = actionArray[1];
-        } else {
-          currentAction = actionAltArray[1];
-        }
-      } else if (ADSR1CurveSelect == true || ADSR2CurveSelect == true) {
-        currentAction = actionAltArray[2];
-      } else if (funcKeyOn) {
-        if (buttonIsLatched[i] == true) {
-          currentAction = actionAltArray[1];
-        } else {
-          currentAction = actionAltArray[0];
-        }
-      } else {
-        if (buttonIsLatched[i] == true) {
-          currentAction = actionArray[1];
-        } else {
-          currentAction = actionArray[0];
-        }
+      switch (currentControlMode) {
+        case NORMAL:
+
+          if (presetSaveSelectMode) {
+            if (presetSaveMode) {
+              currentAction = actionArray[1];
+            } else {
+              currentAction = actionAltArray[1];
+            }
+          } else if (ADSR1CurveSelect == true || ADSR2CurveSelect == true) {
+            currentAction = actionAltArray[2];
+          } else if (funcKeyOn) {
+            if (buttonIsLatched[i] == true) {
+              currentAction = actionAltArray[1];
+            } else {
+              currentAction = actionAltArray[0];
+            }
+          } else {
+            if (buttonIsLatched[i] == true) {
+              currentAction = actionArray[1];
+            } else {
+              currentAction = actionArray[0];
+            }
+          }
+
+          break;
+
+        case MANUAL_CALIBRATION:
+          currentAction = manualCalibrationActions[i];
+          break;
       }
     }
 
@@ -372,16 +382,43 @@ void read_encoders() {
         serial_send_save_char_select(presetCharPos);
         break;
 
-      case ACTION_calibration:
-
-        if (direction == DIR_CW) {
-          calibrationVal = calibrationVal + (1 + (0.5 * speed));
-        } else {
-          calibrationVal = calibrationVal - (1 + (0.5 * speed));
+      case ACTION_CALIBRATION_STAGE:
+        {
+          if (direction == DIR_CW) {
+            manualCalibrationStage = manualCalibrationStage + 1;
+          } else {
+            manualCalibrationStage = manualCalibrationStage - 1;
+          }
+          manualCalibrationStage = constrain(manualCalibrationStage, 0, 15);
+          uint8_t index = (uint8_t)manualCalibrationStage / 2;
+          serial_send_param_change_byte(152, (uint8_t)manualCalibrationStage);
+          serial_send_param_change_byte(153, (uint8_t)manualCalibrationInitAmpCompOffset[index]);
+          break;
         }
-        sendUint16(calibrationVal);
-        serial_send_param_change(101, (uint16_t)calibrationVal);
+      case ACTION_CALIBRATION_OFFSET:
+        {
+          uint8_t index = (uint8_t)manualCalibrationStage / 2;
+          if (direction == DIR_CW) {
+            manualCalibrationInitAmpCompOffset[index] = manualCalibrationInitAmpCompOffset[index] + 1;
+          } else {
+            manualCalibrationInitAmpCompOffset[index] = manualCalibrationInitAmpCompOffset[index] - 1;
+          }
+          manualCalibrationInitAmpCompOffset[index] = constrain(manualCalibrationInitAmpCompOffset[index], -15, 15);
+          serial_send_param_change_byte(153, (uint8_t)manualCalibrationInitAmpCompOffset[index]);
+        }
         break;
+
+
+        // case ACTION_calibration:
+
+        //   if (direction == DIR_CW) {
+        //     calibrationVal = calibrationVal + (1 + (0.5 * speed));
+        //   } else {
+        //     calibrationVal = calibrationVal - (1 + (0.5 * speed));
+        //   }
+        //   sendUint16(calibrationVal);
+        //   serial_send_param_change(101, (uint16_t)calibrationVal);
+        //   break;
     }
   }
 }

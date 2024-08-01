@@ -1,79 +1,158 @@
+#include "include_all.h"
 void read_encoder_buttons() {
   for (int i = 0; i < NUM_BUTTONS; i++) {
 
     ButtonStruct& button = buttons[i];
 
-    ButtonAction currentButtonAction;
-
-    ButtonState currentButtonState;
+    currentButtonAction = BTN_ACTION_NONE;
+    currentButtonState = BTN_STATE_NONE;
 
     button.button_n.update(valorMUX1[button.pin], 50, LOW);
-    if (button.button_n.latched()) {
-      if (i <= 6) {
-        buttonIsLatched[i] = true;
-        update_LED_Control(i, true);
-        LED_Control_Mux.blinkPin(LEDPins[i], true);
-      }
-      //Serial.println("* Button is latched (open)");
-    }
 
-    if (buttons[i].button_n.held()) {
-      currentButtonState = HELD;
 
-      if (funcKeyOn) {
-        currentButtonAction = button.actionHeldAlt;
-        //Serial.println((String) "Button Held ALT " + i);
+    if (currentControlMode == NORMAL) {
+      if (button.button_n.latched()) {
+        handleLatchedButton(i);
+      } else if (button.button_n.held()) {
+        currentButtonState = HELD;
+        handleHeldButton(i);
+      } else if (button.button_n.doublePressed()) {
+        currentButtonState = DOUBLE;
+        handleDoublePressedButton(i);
+      } else if (button.button_n.pressed()) {
+        currentButtonState = PRESSED;
+        handlePressedButton(i);
+      } else if (button.button_n.released(true)) {
+        currentButtonState = RELEASED;
+        handleReleasedButton(i);
+      } else if (button.button_n.unlatched()) {
+        handleUnlatchedButton(i);
       } else {
-        currentButtonAction = button.actionHeld;
-        //Serial.println((String) "Button Held " + i);
+        currentButtonState = BTN_STATE_NONE;
+        currentButtonAction = BTN_ACTION_NONE;
       }
-    } else if (button.button_n.doublePressed()) {
-      currentButtonState = DOUBLE;
-      if (funcKeyOn) {
-        currentButtonAction = button.actionDoubleAlt;
-        //Serial.println((String) "Button Double ALT " + i);
-      } else {
-        currentButtonAction = button.actionDouble;
-        //Serial.println((String) "Button Double " + i);
-      }
-    } else if (button.button_n.pressed()) {
-      currentButtonState = PRESSED;
-      if (funcKeyOn) {
-        currentButtonAction = button.actionPressedAlt;
-        //Serial.println((String) "Button Pressed ALT " + i);
-      } else {
-        currentButtonAction = button.actionPressed;
-        //Serial.println((String) "Button Pressed " + i);
-      }
-    } else if (button.button_n.released(true)) {
-      currentButtonState = RELEASED;
-      if (i <= 6) {
-        buttonIsLatched[i] = false;
-        set_LED_Status(16, 0);
-        LED_Control_Mux.blinkPin(LEDPins[i], 0);
-      }
-
-      if (funcKeyOn) {
-        currentButtonAction = button.actionReleasedAlt;
-        //Serial.println((String) "Button ReleasedALT " + i);
-      } else {
-        currentButtonAction = button.actionReleased;
-        //Serial.println((String) "Button Released " + i);
-      }
-      // } else if (button.button_n.latched()) {
-      //Serial.println("* Button is Latched (closed)");
-
-    } else if (button.button_n.unlatched()) {
-      if (i <= 6) {
-        buttonIsLatched[i] = false;
-        set_LED_Status(16, 0);
-        LED_Control_Mux.blinkPin(LEDPins[i], 0);
-      }
-      //Serial.println("* Button is Unlatched (open)");
     } else {
-      currentButtonState = BTN_STATE_NONE;
-      currentButtonAction = BTN_ACTION_NONE;
+      if (button.button_n.held()) {
+        currentButtonState = HELD;
+        currentButtonAction = button.actionMenuNavigationHeld;
+      } else if (button.button_n.released(true)) {
+        currentButtonState = RELEASED;
+        currentButtonAction = button.actionMenuNavigationReleased;
+      }
     }
+
+    switch (currentControlMode) {
+
+      case PRESET_SAVE:
+        // switch(currentButtonAction) {
+        //   case EXIT:
+        //         currentControlMode = NORMAL;
+        //         currentButtonAction = BTN_ACTION_NONE;
+        //       break;
+        //       case BACK:
+        //       currentButtonAction = BTN_ACTION_NONE;
+
+        //       break;
+        //       case SELECT:
+        //       currentButtonAction = BTN_ACTION_NONE;
+        //       break;
+        //       case CONFIRM:
+        //       currentButtonAction = BTN_ACTION_NONE;
+        //       break;
+        // }
+        break;
+
+      case MANUAL_CALIBRATION:
+        switch (currentButtonAction) {
+          case EXIT:
+            currentControlMode = NORMAL;
+            currentButtonAction = BTN_ACTION_NONE;
+            manualCalibration = false;
+            serial_send_param_change_byte(151, manualCalibration);
+            
+            break;
+          case BACK:
+            currentButtonAction = BTN_ACTION_NONE;
+            break;
+          case SELECT:
+            currentButtonAction = BTN_ACTION_NONE;
+            break;
+          case CONFIRM:
+            currentControlMode = NORMAL;
+            currentButtonAction = BTN_ACTION_NONE;
+            manualCalibration = false;
+            serial_send_param_change_byte(151, manualCalibration);
+            break;
+        }
+        break;
+    }
+
+    // if (button.button_n.latched()) {
+    //   if (i <= 6) {
+    //     buttonIsLatched[i] = true;
+    //     update_LED_Control(i, true);
+    //     LED_Control_Mux.blinkPin(LEDPins[i], true);
+    //   }
+    //   //Serial.println("* Button is latched (open)");
+    // }
+
+    // if (buttons[i].button_n.held()) {
+    //   currentButtonState = HELD;
+
+    //   if (funcKeyOn) {
+    //     currentButtonAction = button.actionHeldAlt;
+    //     //Serial.println((String) "Button Held ALT " + i);
+    //   } else {
+    //     currentButtonAction = button.actionHeld;
+    //     //Serial.println((String) "Button Held " + i);
+    //   }
+    // } else if (button.button_n.doublePressed()) {
+    //   currentButtonState = DOUBLE;
+    //   if (funcKeyOn) {
+    //     currentButtonAction = button.actionDoubleAlt;
+    //     //Serial.println((String) "Button Double ALT " + i);
+    //   } else {
+    //     currentButtonAction = button.actionDouble;
+    //     //Serial.println((String) "Button Double " + i);
+    //   }
+    // } else if (button.button_n.pressed()) {
+    //   currentButtonState = PRESSED;
+    //   if (funcKeyOn) {
+    //     currentButtonAction = button.actionPressedAlt;
+    //     //Serial.println((String) "Button Pressed ALT " + i);
+    //   } else {
+    //     currentButtonAction = button.actionPressed;
+    //     //Serial.println((String) "Button Pressed " + i);
+    //   }
+    // } else if (button.button_n.released(true)) {
+    //   currentButtonState = RELEASED;
+    //   if (i <= 6) {
+    //     buttonIsLatched[i] = false;
+    //     set_LED_Status(16, 0);
+    //     LED_Control_Mux.blinkPin(LEDPins[i], 0);
+    //   }
+
+    //   if (funcKeyOn) {
+    //     currentButtonAction = button.actionReleasedAlt;
+    //     //Serial.println((String) "Button ReleasedALT " + i);
+    //   } else {
+    //     currentButtonAction = button.actionReleased;
+    //     //Serial.println((String) "Button Released " + i);
+    //   }
+    //   // } else if (button.button_n.latched()) {
+    //   //Serial.println("* Button is Latched (closed)");
+
+    // } else if (button.button_n.unlatched()) {
+    //   if (i <= 6) {
+    //     buttonIsLatched[i] = false;
+    //     set_LED_Status(16, 0);
+    //     LED_Control_Mux.blinkPin(LEDPins[i], 0);
+    //   }
+    //   //Serial.println("* Button is Unlatched (open)");
+    // } else {
+    //   currentButtonState = BTN_STATE_NONE;
+    //   currentButtonAction = BTN_ACTION_NONE;
+    // }
 
     switch (currentButtonAction) {
       case BTN_ACTION_NONE:
@@ -326,6 +405,70 @@ void read_encoder_buttons() {
         serialSendADSR3ToOscSelectFlag = true;
         serial_send_param_change_byte(10, ADSR3ToOscSelect);
         break;
+
+      case TG_MAN_CALIBRATION:
+
+        manualCalibration = true;
+        currentControlMode = MANUAL_CALIBRATION;
+        manualCalibrationStage = 0;
+        serial_send_param_change_byte(151, manualCalibration);
+        serial_send_param_change(152, (uint8_t)manualCalibrationStage);
+        serial_send_param_change(153, (uint8_t)manualCalibrationInitAmpCompOffset[manualCalibrationStage/2]);
+        break;
+
+      case BACK:
+
+        break;
+      case EXIT:
+
+        break;
+      case SELECT:
+
+        break;
+      case CONFIRM:
+
+        break;
     }
+  }
+}
+
+void handleLatchedButton(int i) {
+  if (i <= 6) {
+    buttonIsLatched[i] = true;
+    update_LED_Control(i, true);
+    LED_Control_Mux.blinkPin(LEDPins[i], true);
+  }
+}
+
+void handleHeldButton(int i) {
+  ButtonStruct& button = buttons[i];
+  currentButtonAction = funcKeyOn ? button.actionHeldAlt : button.actionHeld;
+}
+
+void handleDoublePressedButton(int i) {
+  ButtonStruct& button = buttons[i];
+  currentButtonAction = button.actionDouble;
+}
+
+void handlePressedButton(int i) {
+  ButtonStruct& button = buttons[i];
+  currentButtonAction = funcKeyOn ? button.actionPressedAlt : button.actionPressed;
+}
+
+void handleReleasedButton(int i) {
+  ButtonStruct& button = buttons[i];
+  if (i <= 6) {
+    buttonIsLatched[i] = false;
+    set_LED_Status(16, 0);
+    LED_Control_Mux.blinkPin(LEDPins[i], 0);
+  }
+  currentButtonAction = funcKeyOn ? button.actionReleasedAlt : button.actionReleased;
+}
+
+void handleUnlatchedButton(int i) {
+  if (i <= 6) {
+    buttonIsLatched[i] = false;
+    set_LED_Status(16, 0);
+    LED_Control_Mux.blinkPin(LEDPins[i], 0);
   }
 }

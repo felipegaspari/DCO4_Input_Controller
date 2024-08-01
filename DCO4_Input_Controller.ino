@@ -2,7 +2,8 @@
 #include "Arduino.h"
 //#include <Adafruit_TinyUSB.h>
 
-#define NUM_VOICES 2
+#define NUM_VOICES 4
+#define NUM_OSCILLATORS NUM_VOICES * 2
 
 int8_t OSC1Interval = 24;
 int8_t OSC2Interval = 24;
@@ -151,8 +152,8 @@ void loop() {
 #ifdef ENABLE_SERIAL
   //drawTM(tiempodeejecucion);
   //if (1 == 1) {
-    //if (timer99microsFlag) {58
-    if (timer200msFlag) {
+  //if (timer99microsFlag) {58
+  if (timer200msFlag) {
     // if (tiempodeejecuciontotal > 100 ) {
     //    contadorLatencia++;
     //    float tiemposobrelatencia = (float) micros() / contadorLatencia; // baseline = 5000
