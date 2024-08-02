@@ -102,6 +102,13 @@ void serial_send_save_char_select(byte serialPresetChar) {
 #endif
 }
 
+void serialSendParamByteToScreen(byte paramNumber, byte paramValue)
+{
+ while(Serial1.availableForWrite() < 1) {};
+  byte bytesArray[4] = {(uint8_t)'y', paramNumber, paramValue, finishByte};
+  Serial1.write(bytesArray, 4);
+}
+
 void serial_read_n() {
   while (Serial2.available() > 0) {
     char commandCharacter = Serial2.read();

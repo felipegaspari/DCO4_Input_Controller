@@ -151,9 +151,12 @@ void loop() {
 
 #ifdef ENABLE_SERIAL
   //drawTM(tiempodeejecucion);
-  //if (1 == 1) {
-  //if (timer99microsFlag) {58
   if (timer200msFlag) {
+    Serial.print("|");
+  }
+  if (1 == 2) {
+  //if (timer99microsFlag) {58
+  //if (timer200msFlag) {
     // if (tiempodeejecuciontotal > 100 ) {
     //    contadorLatencia++;
     //    float tiemposobrelatencia = (float) micros() / contadorLatencia; // baseline = 5000

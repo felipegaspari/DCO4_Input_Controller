@@ -50,6 +50,9 @@ enum EncoderAction {
   
   ACTION_CALIBRATION_OFFSET, 
   ACTION_CALIBRATION_STAGE,
+
+  ACTION_MENU_VALUE,
+  ACTION_MENU_POS,
 };
 
 struct EncoderStruct {
@@ -80,5 +83,17 @@ EncoderStruct encoders[] = {
 };
 
 EncoderAction manualCalibrationActions[] = { ACTION_NONE, ACTION_NONE, ACTION_NONE, ACTION_NONE, ACTION_NONE, ACTION_NONE, ACTION_NONE, ACTION_CALIBRATION_OFFSET, ACTION_CALIBRATION_STAGE, ACTION_NONE, ACTION_NONE};
+EncoderAction menuNavigationActions[] = { ACTION_NONE, ACTION_NONE, ACTION_NONE, ACTION_NONE, ACTION_NONE, ACTION_NONE, ACTION_NONE, ACTION_MENU_VALUE, ACTION_MENU_POS, ACTION_NONE, ACTION_NONE};
+
+EncoderAction encoderActionSelected = ACTION_NONE;
+unsigned long encoderActionSelectedMillis = 0;
+unsigned long encoderActionSelectedTimeout = 2000;
+bool encoderActionIsSelected  = false;
+
+
+int8_t menuPos = 0;
+int8_t menuPosMax = 0;
+int8_t menuValue = 0;
+
 
 #endif

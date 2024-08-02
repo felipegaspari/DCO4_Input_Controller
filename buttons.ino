@@ -1,5 +1,11 @@
 #include "include_all.h"
 void read_encoder_buttons() {
+
+  if ((millis() - buttonActionSelectedMillis) > buttonActionSelectedTimeout) {
+    buttonActionSelected = BTN_ACTION_NONE;
+    buttonActionIsSelected = false;
+  }
+
   for (int i = 0; i < NUM_BUTTONS; i++) {
 
     ButtonStruct& button = buttons[i];
@@ -31,6 +37,18 @@ void read_encoder_buttons() {
         currentButtonState = BTN_STATE_NONE;
         currentButtonAction = BTN_ACTION_NONE;
       }
+
+      if (currentButtonState != BTN_STATE_NONE) {
+        if (currentButtonAction == buttonActionSelected) {
+          buttonActionIsSelected = true;
+        } else {
+          buttonActionSelected = currentButtonAction;
+          buttonActionIsSelected = false;
+        }
+
+        buttonActionSelectedMillis = millis();
+      }
+
     } else {
       if (button.button_n.held()) {
         currentButtonState = HELD;
@@ -65,14 +83,19 @@ void read_encoder_buttons() {
       case MANUAL_CALIBRATION:
         switch (currentButtonAction) {
           case EXIT:
-            currentControlMode = NORMAL;
+            currentControlMode = CALIBRATION_MENU;
             currentButtonAction = BTN_ACTION_NONE;
             manualCalibration = false;
             serial_send_param_change_byte(151, manualCalibration);
-            
+            //serialSendParamByteToScreen(199, 0);
+
             break;
           case BACK:
+            currentControlMode = CALIBRATION_MENU;
             currentButtonAction = BTN_ACTION_NONE;
+            manualCalibration = false;
+            serial_send_param_change_byte(151, manualCalibration);
+            //serialSendParamByteToScreen(199, 0);
             break;
           case SELECT:
             currentButtonAction = BTN_ACTION_NONE;
@@ -82,6 +105,37 @@ void read_encoder_buttons() {
             currentButtonAction = BTN_ACTION_NONE;
             manualCalibration = false;
             serial_send_param_change_byte(151, manualCalibration);
+            break;
+        }
+        break;
+
+      case CALIBRATION_MENU:
+        switch (currentButtonAction) {
+          case EXIT:
+            currentControlMode = NORMAL;
+            currentButtonAction = BTN_ACTION_NONE;
+            serial_send_param_change_byte(199, 0);
+            break;
+          case BACK:
+            currentControlMode = NORMAL;
+            currentButtonAction = BTN_ACTION_NONE;
+            serial_send_param_change_byte(199, 0);
+            break;
+          case SELECT:
+            switch (menuPos) {
+              case 0:
+                serial_send_param_change_byte(150, 1);
+                break;
+              case 1:
+                break;
+              case 2:
+                break;
+              case 3:
+                currentButtonAction = TG_MAN_CALIBRATION;
+                break;
+            }
+            break;
+          case CONFIRM:
             break;
         }
         break;
@@ -160,6 +214,7 @@ void read_encoder_buttons() {
       case TG_SAW1:
         sawStatus = !sawStatus;
         //digitalWrite(PIN_SAW1, sawStatus);
+
         serial_send_param_change(1, sawStatus);
         set_LED_Status(0, sawStatus);
         break;
@@ -193,7 +248,9 @@ void read_encoder_buttons() {
         break;
 
       case TG_RESO_AMP_COMP:
-        RESONANCEAmpCompensation = !RESONANCEAmpCompensation;
+        if (buttonActionIsSelected) {
+          RESONANCEAmpCompensation = !RESONANCEAmpCompensation;
+        }
         serial_send_param_change_byte(7, RESONANCEAmpCompensation);
         break;
 
@@ -202,47 +259,56 @@ void read_encoder_buttons() {
           ADSR1CurveSelect = false;
           serial_send_param_change_byte(48, -1);
         } else {
-          VCAADSRRestart = !VCAADSRRestart;
+          if (buttonActionIsSelected) {
+            VCAADSRRestart = !VCAADSRRestart;
+          }
           serial_send_param_change_byte(8, VCAADSRRestart);
         }
         break;
 
-      case TG_ADSR2_RESTART:  //Serial.print
+      case TG_ADSR2_RESTART:  //
         if (ADSR2CurveSelect == true) {
           ADSR2CurveSelect = false;
+          serial_send_param_change_byte(48, -1);
         } else {
-          VCFADSRRestart = !VCFADSRRestart;
+          if (buttonActionIsSelected) {
+            VCFADSRRestart = !VCFADSRRestart;
+          }
           serial_send_param_change_byte(9, VCFADSRRestart);
         }
         break;
 
       case SELECT_LFO_N:
         break;
-      case TG_LFO1_WAVE:
-        LFO1Waveform++;
-        if (LFO1Waveform > 4) {
-          LFO1Waveform = 1;
-        }
 
+      case TG_LFO1_WAVE:
+        if (buttonActionIsSelected) {
+          LFO1Waveform++;
+          if (LFO1Waveform > 4) {
+            LFO1Waveform = 1;
+          }
+        }
         serial_send_LFO1toDCOWaveChangeFlag = true;
         serial_send_param_change_byte(11, LFO1Waveform);
 
         break;
 
       case TG_LFO2_WAVE:
-        LFO2Waveform++;
-        if (LFO2Waveform > 4) {
-          LFO2Waveform = 1;
+        if (buttonActionIsSelected) {
+          LFO2Waveform++;
+          if (LFO2Waveform > 4) {
+            LFO2Waveform = 1;
+          }
         }
-
-        LFO2Waveform = LFO2Waveform;
         serial_send_param_change_byte(12, LFO2Waveform);
         break;
 
       case TG_VOICE_MODE:
-        voiceMode++;
-        if (voiceMode > 2) {
-          voiceMode = 0;
+        if (buttonActionIsSelected) {
+          voiceMode++;
+          if (voiceMode > 2) {
+            voiceMode = 0;
+          }
         }
         serial_send_param_change_byte(26, voiceMode);
         break;
@@ -376,20 +442,26 @@ void read_encoder_buttons() {
         break;
 
       case TG_SYNC_MODE:
-        syncMode++;
-        if (syncMode > 2) {
-          syncMode = 0;
+        if (buttonActionIsSelected) {
+          syncMode++;
+          if (syncMode > 2) {
+            syncMode = 0;
+          }
         }
         serial_send_param_change_byte(31, syncMode);
         break;
 
       case ADSR1_CURVE_SEL:
-        ADSR1CurveSelect = !ADSR1CurveSelect;
+        if (buttonActionIsSelected) {
+          ADSR1CurveSelect = !ADSR1CurveSelect;
+        }
         serial_send_param_change_byte(48, -1);
         break;
 
       case ADSR2_CURVE_SEL:
-        ADSR2CurveSelect = !ADSR2CurveSelect;
+        if (buttonActionIsSelected) {
+          ADSR2CurveSelect = !ADSR2CurveSelect;
+        }
         serial_send_param_change_byte(50, -1);
         break;
 
@@ -398,22 +470,32 @@ void read_encoder_buttons() {
         break;
 
       case TG_ADSR3_TO_OSC_SELECT:
-        ADSR3ToOscSelect++;
-        if (ADSR3ToOscSelect > 2) {
-          ADSR3ToOscSelect = 0;
+        if (buttonActionIsSelected) {
+          ADSR3ToOscSelect++;
+          if (ADSR3ToOscSelect > 2) {
+            ADSR3ToOscSelect = 0;
+          }
         }
         serialSendADSR3ToOscSelectFlag = true;
         serial_send_param_change_byte(10, ADSR3ToOscSelect);
         break;
 
-      case TG_MAN_CALIBRATION:
+      case TG_CALIBRATION_MENU:
+        menuPos = 0;
+        menuPosMax = 3;
+        currentControlMode = CALIBRATION_MENU;
+        serial_send_param_change_byte(200, 1);
+        serial_send_param_change_byte(190, (uint8_t)menuPos);
+        break;
 
+      case TG_MAN_CALIBRATION:
         manualCalibration = true;
         currentControlMode = MANUAL_CALIBRATION;
         manualCalibrationStage = 0;
+        memset(manualCalibrationInitAmpCompOffset, 0, sizeof(manualCalibrationInitAmpCompOffset));
         serial_send_param_change_byte(151, manualCalibration);
         serial_send_param_change(152, (uint8_t)manualCalibrationStage);
-        serial_send_param_change(153, (uint8_t)manualCalibrationInitAmpCompOffset[manualCalibrationStage/2]);
+        serial_send_param_change(153, (uint8_t)manualCalibrationInitAmpCompOffset[manualCalibrationStage / 2]);
         break;
 
       case BACK:
