@@ -41,28 +41,42 @@ void serial_send_signal(byte signal) {
 #endif
 }
 
-void serial_send_param_change(byte param, uint16_t paramValue) {
+
+void serial_send_param_change(byte param, uint16_t paramValue, bool sendToAll) {
   byte bytesArray[5] = { (uint8_t)'p', param, highByte(paramValue), lowByte(paramValue), finishByte };
 #ifdef ENABLE_SERIAL1
-
-  Serial1.write(bytesArray, 5);
+  if (sendToAll) {
+    Serial1.write(bytesArray, 5);
+  }
 #endif
 #ifdef ENABLE_SERIAL2
-
-  Serial2.write(bytesArray, 5);
+  if (paramValue != -1) {  // paramValue 100 = send to screen only
+    Serial2.write(bytesArray, 5);
+  }
 #endif
 }
 
-void serial_send_param_change_byte(byte param, byte paramValue) {
-  byte bytesArray[4] = { (uint8_t)'w', param, paramValue, finishByte };
+void serial_send_param_change_byte(byte param, byte paramValue, bool sendToAll) {
+  byte bytesArrayByte[4] = { (uint8_t)'w', param, paramValue, finishByte };
 #ifdef ENABLE_SERIAL1
-
-  Serial1.write(bytesArray, 4);
+  if (sendToAll) {
+    Serial1.write(bytesArrayByte, 4);
+  }
 #endif
 #ifdef ENABLE_SERIAL2
-
-  Serial2.write(bytesArray, 4);
+  if (paramValue != -1) {  // paramValue 100 = send to screen only
+    Serial2.write(bytesArrayByte, 4);
+  }
 #endif
+}
+
+void serial_send_preset_name_to_mainboard() {
+
+  Serial2.write((char *)"q");
+
+  Serial2.write(presetNameVal, 12);
+
+  Serial2.write(finishByte);
 }
 
 void serial_send_preset_scroll(byte presetNumber, byte presetNameSerial[]) {
@@ -73,7 +87,7 @@ void serial_send_preset_scroll(byte presetNumber, byte presetNameSerial[]) {
 
   Serial1.write(presetNumber);
 
-  Serial1.write(presetNameSerial, 8);
+  Serial1.write(presetNameSerial, 12);
 
   Serial1.write(finishByte);
 #endif
@@ -86,6 +100,13 @@ void serial_send_save_char_select(byte serialPresetChar) {
 
   Serial1.write(serialPresetChar);
 #endif
+}
+
+void serialSendParamByteToScreen(byte paramNumber, byte paramValue)
+{
+ while(Serial1.availableForWrite() < 1) {};
+  byte bytesArray[4] = {(uint8_t)'y', paramNumber, paramValue, finishByte};
+  Serial1.write(bytesArray, 4);
 }
 
 void serial_read_n() {
@@ -133,7 +154,7 @@ void serial_read_n() {
           CUTOFF = word(byteArray[0], byteArray[1]);
           RESONANCE = word(byteArray[2], byteArray[3]);
           ADSR2toVCF = word(byteArray[4], byteArray[5]);
-          LFO1toVCF = word(byteArray[6], byteArray[7]);
+          LFO2toVCF = word(byteArray[6], byteArray[7]);
           break;
         }
       case 'e':

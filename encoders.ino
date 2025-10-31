@@ -1,4 +1,12 @@
+
+#include "include_all.h"
 void read_encoders() {
+
+  if ((millis() - encoderActionSelectedMillis) > encoderActionSelectedTimeout) {
+    encoderActionSelected = ACTION_NONE;
+    encoderActionIsSelected = false;
+  }
+
   for (int i = 0; i < sizeof(encoders) / sizeof(encoders[0]); i++) {
 
     EncoderAction currentAction = ACTION_NONE;
@@ -14,12 +22,53 @@ void read_encoders() {
 
     if (direction) {
       speed = encoder.MD_REncoder_Name.speed();
-      if (funcKeyOn) {
-        currentAction = actionAltArray[0];
-      } else {
-        currentAction = actionArray[0];
+
+      switch (currentControlMode) {
+        case NORMAL:
+
+          if (presetSaveSelectMode) {
+            if (presetSaveMode) {
+              currentAction = actionArray[1];
+            } else {
+              currentAction = actionAltArray[1];
+            }
+          } else if (ADSR1CurveSelect == true || ADSR2CurveSelect == true) {
+            currentAction = actionAltArray[2];
+          } else if (funcKeyOn) {
+            if (buttonIsLatched[i] == true) {
+              currentAction = actionAltArray[1];
+            } else {
+              currentAction = actionAltArray[0];
+            }
+          } else {
+            if (buttonIsLatched[i] == true) {
+              currentAction = actionArray[1];
+            } else {
+              currentAction = actionArray[0];
+            }
+          }
+
+          if (currentAction == encoderActionSelected) {
+            encoderActionIsSelected = true;
+          } else {
+            encoderActionSelected = currentAction;
+            encoderActionIsSelected = false;
+          }
+
+           encoderActionSelectedMillis = millis();
+
+          break;
+
+        case MANUAL_CALIBRATION:
+          currentAction = manualCalibrationActions[i];
+          break;
+        case MENU_NAVIGATION:
+          currentAction = menuNavigationActions[i];
+          break;
+        case CALIBRATION_MENU:
+        currentAction = menuNavigationActions[i];
+        break;
       }
-      // Serial.println((String)"Encoder" + i); // DEBUG
     }
 
     switch (currentAction) {
@@ -28,190 +77,338 @@ void read_encoders() {
         break;
 
       case ACTION_portamento_time:
-        if (direction == DIR_CW) {
-          portamentoTimeVal = portamentoTimeVal + (1 + (0.5 * speed));
-        } else {
-          portamentoTimeVal = portamentoTimeVal - (1 + (0.5 * speed));
+        if (encoderActionIsSelected) {
+          if (direction == DIR_CW) {
+            portamentoTime = portamentoTime + (1 + (0.5 * speed));
+          } else {
+            portamentoTime = portamentoTime - (1 + (0.5 * speed));
+          }
+          portamentoTime = constrain(portamentoTime, 0, 255);
         }
-        portamentoTimeVal = constrain(portamentoTimeVal, 0, 255);
-        portamentoTime = portamentoTimeVal;
         //serial_send_portamentoFlag = true;
-        serial_send_param_change_byte(18, portamentoTime);
+        serial_send_param_change_byte(18, (uint8_t)portamentoTime);
         break;
 
       case ACTION_LFO1_to_DCO:
-        if (direction == DIR_CW) {
-          LFO1toDCOVal = LFO1toDCOVal + (1 + (0.5 * speed));
-        } else {
-          LFO1toDCOVal = LFO1toDCOVal - (1 + (0.5 * speed));
+        if (encoderActionIsSelected) {
+          if (direction == DIR_CW) {
+            LFO1toDCO = LFO1toDCO + (1 + (0.5 * speed));
+          } else {
+            LFO1toDCO = LFO1toDCO - (1 + (0.5 * speed));
+          }
+        LFO1toDCO = constrain(LFO1toDCO, 0, 511);
         }
-
-        LFO1toDCOVal = constrain(LFO1toDCOVal, 0, 511);
-        controls_formula_update(3);
-        serial_send_param_change(40, LFO1toDCOVal);
+        serial_send_param_change(40, (uint16_t)LFO1toDCO);
 
         //serial_send_LFO1toDCOFlag = true;  //DCO FM / LFO
         break;
 
       case ACTION_VCF_keytrack:
-        if (direction == DIR_CW) {
-          VCFKeytrackVal = VCFKeytrackVal + (1 + (0.5 * speed));
-        } else {
-          VCFKeytrackVal = VCFKeytrackVal - (1 + (0.5 * speed));
+        if (encoderActionIsSelected) {
+          if (direction == DIR_CW) {
+            VCFKeytrack = VCFKeytrack + (1 + (0.5 * speed));
+          } else {
+            VCFKeytrack = VCFKeytrack - (1 + (0.5 * speed));
+          }
+          VCFKeytrack = constrain(VCFKeytrack, -256, 255);
         }
-        VCFKeytrackVal = constrain(VCFKeytrackVal, 0, 255);
-        VCFKeytrack = VCFKeytrackVal;
-        formula_update(1);
-        serial_send_param_change_byte(19, VCFKeytrack);
+        serial_send_param_change(19, (uint16_t)VCFKeytrack);
         break;
 
       case ACTION_ADSR3_to_DETUNE1:
-        if (direction == DIR_CW) {
-          ADSR3toDETUNE1Val = ADSR3toDETUNE1Val + (1 + (1 * speed));
-        } else {
-          ADSR3toDETUNE1Val = ADSR3toDETUNE1Val - (1 + (1 * speed));
+        if (encoderActionIsSelected) {
+          if (direction == DIR_CW) {
+            ADSR3toDETUNE1 = ADSR3toDETUNE1 + (1 + (1 * speed));
+          } else {
+            ADSR3toDETUNE1 = ADSR3toDETUNE1 - (1 + (1 * speed));
+          }
+          ADSR3toDETUNE1 = constrain(ADSR3toDETUNE1, -511, 511);
+          //formula_update(10);
+          //serialSendADSR3toDCOFlag = true;
         }
-        ADSR3toDETUNE1Val = constrain(ADSR3toDETUNE1Val, -511, 511);
-        ADSR3toDETUNE1 = ADSR3toDETUNE1Val;
-        //formula_update(10);
-        //serialSendADSR3toDCOFlag = true;
-        serial_send_param_change(47, ADSR3toDETUNE1);
+        serial_send_param_change(47, (uint16_t)ADSR3toDETUNE1);
         break;
 
       case ACTION_velocity_to_VCF:
-        if (direction == DIR_CW) {
-          velocityToVCFVal = velocityToVCFVal + 1;
-        } else {
-          velocityToVCFVal = velocityToVCFVal - 1;
+        if (encoderActionIsSelected) {
+          if (direction == DIR_CW) {
+            velocityToVCF = velocityToVCF + 1;
+          } else {
+            velocityToVCF = velocityToVCF - 1;
+          }
+          velocityToVCF = constrain(velocityToVCF, 0, 20);
         }
-        velocityToVCFVal = constrain(velocityToVCFVal, 0, 20);
-        velocityToVCF = (velocityToVCFVal)*0.0003935;
-        serial_send_param_change_byte(20, velocityToVCFVal);
+        serial_send_param_change_byte(20, (uint8_t)velocityToVCF);
         break;
 
       case ACTION_velocity_to_VCA:
-        if (direction == DIR_CW) {
-          velocityToVCAVal = velocityToVCAVal + (1 + (1 * speed));
-        } else {
-          velocityToVCAVal = velocityToVCAVal - (1 + (1 * speed));
+        if (encoderActionIsSelected) {
+          if (direction == DIR_CW) {
+            velocityToVCA = velocityToVCA + (1 + (1 * speed));
+          } else {
+            velocityToVCA = velocityToVCA - (1 + (1 * speed));
+          }
+          velocityToVCA = constrain(velocityToVCA, 0, 20);
         }
-        velocityToVCAVal = constrain(velocityToVCAVal, 0, 20);
-        velocityToVCA = (velocityToVCAVal)*0.0003935;
-        serial_send_param_change_byte(21, velocityToVCAVal);
+        serial_send_param_change_byte(21, (uint8_t)velocityToVCA);
         break;
 
       case ACTION_octave:
-        if (direction == DIR_CW) {
-          OSC1IntervalVal = OSC1IntervalVal + 12;
-        } else {
-          OSC1IntervalVal = OSC1IntervalVal - 12;
+        if (encoderActionIsSelected) {
+          if (direction == DIR_CW) {
+            OSC1Interval = OSC1Interval + 12;
+          } else {
+            OSC1Interval = OSC1Interval - 12;
+          }
+          OSC1Interval = constrain(OSC1Interval, 0, 72);
         }
-        OSC1IntervalVal = constrain(OSC1IntervalVal, 0, 72);
-        OSC1Interval = OSC1IntervalVal;
-        serial_send_param_change_byte(13, OSC1Interval);  //Octave
+        serial_send_param_change_byte(13, (uint8_t)OSC1Interval);  //Octave
         //serial_send_OSC1IntervalFlag = true;
         break;
 
       case ACTION_SQR1_level:
-        if (direction == DIR_CW) {
-          SQR1LevelVal = SQR1LevelVal + (1 + (1 * speed));
-        } else {
-          SQR1LevelVal = SQR1LevelVal - (1 + (1 * speed));
+        if (encoderActionIsSelected) {
+          if (direction == DIR_CW) {
+            SQR1Level = SQR1Level + (1 + (1 * speed));
+          } else {
+            SQR1Level = SQR1Level - (1 + (1 * speed));
+          }
+          SQR1Level = constrain(SQR1Level, 0, 128);
         }
-        SQR1LevelVal = constrain(SQR1LevelVal, 0, 128);
-        SQR1Level = 4096 - (SQR1LevelVal * 32);
-        serial_send_param_change_byte(22, SQR1LevelVal);
+        serial_send_param_change_byte(22, (uint8_t)SQR1Level);
         break;
 
       case ACTION_SQR2_level:
-        if (direction == DIR_CW) {
-          SQR2LevelVal = SQR2LevelVal + (1 + (1 * speed));
-        } else {
-          SQR2LevelVal = SQR2LevelVal - (1 + (1 * speed));
+        if (encoderActionIsSelected) {
+          if (direction == DIR_CW) {
+            SQR2Level = SQR2Level + (1 + (1 * speed));
+          } else {
+            SQR2Level = SQR2Level - (1 + (1 * speed));
+          }
+          SQR2Level = constrain(SQR2Level, 0, 128);
         }
-        SQR2LevelVal = constrain(SQR2LevelVal, 0, 128);
-        SQR2Level = 4096 - (SQR2LevelVal * 32);
-        serial_send_param_change_byte(23, SQR2LevelVal);
+        serial_send_param_change_byte(23, (uint8_t)SQR2Level);
         break;
 
       case ACTION_SUB_level:
-        if (direction == DIR_CW) {
-          SubLevelVal = SubLevelVal + (1 + (1 * speed));
-        } else {
-          SubLevelVal = SubLevelVal - (1 + (1 * speed));
+        if (encoderActionIsSelected) {
+          if (direction == DIR_CW) {
+            SubLevel = SubLevel + (1 + (1 * speed));
+          } else {
+            SubLevel = SubLevel - (1 + (1 * speed));
+          }
+          SubLevel = constrain(SubLevel, 0, 128);
         }
-        SubLevelVal = constrain(SubLevelVal, 0, 128);
-        SubLevel = 4096 - (SubLevelVal * 32);
-        serial_send_param_change_byte(24, SubLevelVal);
+        serial_send_param_change_byte(24, (uint8_t)SubLevel);
         break;
 
       case ACTION_OSC2_interval:
-        if (direction == DIR_CW) {
-          OSC2IntervalVal = OSC2IntervalVal + 1;
-        } else {
-          OSC2IntervalVal = OSC2IntervalVal - 1;
+        if (encoderActionIsSelected) {
+          if (direction == DIR_CW) {
+            OSC2Interval = OSC2Interval + 1;
+          } else {
+            OSC2Interval = OSC2Interval - 1;
+          }
+          OSC2Interval = constrain(OSC2Interval, 0, 48);
         }
-        OSC2IntervalVal = constrain(OSC2IntervalVal, 0, 48);
-        OSC2Interval = OSC2IntervalVal;
-        serial_send_param_change_byte(14, OSC2Interval);
+        serial_send_param_change_byte(14, (uint8_t)OSC2Interval);
         //serial_send_OSC2IntervalFlag = true;
         break;
 
       case ACTION_OSC2_detune:
-        if (direction == DIR_CW) {
-          OSC2DetuneVal = OSC2DetuneVal + (1 + (1 * speed));
-        } else {
-          OSC2DetuneVal = OSC2DetuneVal - (1 + (1 * speed));
+        if (encoderActionIsSelected) {
+          if (direction == DIR_CW) {
+            OSC2Detune = OSC2Detune + (1 + (1 * speed));
+          } else {
+            OSC2Detune = OSC2Detune - (1 + (1 * speed));
+          }
+          OSC2Detune = constrain(OSC2Detune, 0, 512);
         }
-        OSC2DetuneVal = constrain(OSC2DetuneVal, 0, 255);
-        OSC2Detune = OSC2DetuneVal;
-        serial_send_param_change_byte(15, OSC2Detune);
+        serial_send_param_change(15, (uint16_t)OSC2Detune);
         break;
 
-      case ACTION_LFO2_to_OSC2_detune:
-        if (direction == DIR_CW) {
-          LFO2toOSC2DETUNEVal = LFO2toOSC2DETUNEVal + (1 + (0.5 * speed));
-        } else {
-          LFO2toOSC2DETUNEVal = LFO2toOSC2DETUNEVal - (1 + (0.5 * speed));
+      case ACTION_LFO2_to_OSC2:
+        if (encoderActionIsSelected) {
+          if (direction == DIR_CW) {
+            LFO2toOSC2DETUNE = LFO2toOSC2DETUNE + (1 + (0.5 * speed));
+          } else {
+            LFO2toOSC2DETUNE = LFO2toOSC2DETUNE - (1 + (0.5 * speed));
+          }
+          LFO2toOSC2DETUNE = constrain(LFO2toOSC2DETUNE, 0, 255);
         }
-        LFO2toOSC2DETUNEVal = constrain(LFO2toOSC2DETUNEVal, 0, 255);
-        LFO2toOSC2DETUNE = LFO2toOSC2DETUNEVal;
-        serial_send_param_change_byte(16, LFO2toOSC2DETUNE);
+        serial_send_param_change_byte(16, (uint8_t)LFO2toOSC2DETUNE);
         break;
 
       case ACTION_osc_sync_mode:
-        if (direction == DIR_CW) {
-          oscSyncModeVal = oscSyncModeVal + 1;
-        } else {
-          oscSyncModeVal = oscSyncModeVal - 1;
+        if (encoderActionIsSelected) {
+          if (direction == DIR_CW) {
+            oscSyncMode = oscSyncMode + 1;
+          } else {
+            oscSyncMode = oscSyncMode - 1;
+          }
+          oscSyncMode = constrain(oscSyncMode, 0, 3);
         }
-        oscSyncModeVal = constrain(oscSyncModeVal, 0, 3);
-        oscSyncMode = (byte)oscSyncModeVal;
         serial_send_oscSyncModeFlag = true;
-        serial_send_param_change_byte(17, oscSyncMode);
+        serial_send_param_change_byte(17, (uint8_t)oscSyncMode);
         break;
 
       case ACTION_LFO1_speed:
-        if (direction == DIR_CW) {
-          LFO1SpeedVal = LFO1SpeedVal + (1 + (2 * speed));
-        } else {
-          LFO1SpeedVal = LFO1SpeedVal - (1 + (2 * speed));
+        if (encoderActionIsSelected) {
+          if (direction == DIR_CW) {
+            LFO1Speed = LFO1Speed + (1 + (2 * speed));
+          } else {
+            LFO1Speed = LFO1Speed - (1 + (2 * speed));
+          }
+          LFO1Speed = constrain(LFO1Speed, 0, 4095);
         }
-        LFO1SpeedVal = constrain(LFO1SpeedVal, 0, 4095);
-        controls_formula_update(1);
-        serial_send_param_change(41, LFO1SpeedVal);
+        serial_send_param_change(41, (uint16_t)LFO1Speed);
         //serial_send_LFO1SpeedFlag = true;  // FM / DCO LFO
         break;
 
       case ACTION_LFO2_speed:
-        if (direction == DIR_CW) {
-          LFO2SpeedVal = LFO2SpeedVal + (1 + (2 * speed));
-        } else {
-          LFO2SpeedVal = LFO2SpeedVal - (1 + (2 * speed));
+        if (encoderActionIsSelected) {
+          if (direction == DIR_CW) {
+            LFO2Speed = LFO2Speed + (1 + (2 * speed));
+          } else {
+            LFO2Speed = LFO2Speed - (1 + (2 * speed));
+          }
+          LFO2Speed = constrain(LFO2Speed, 0, 4095);
         }
-        LFO2SpeedVal = constrain(LFO2SpeedVal, 0, 4095);
-        controls_formula_update(2);
-        serial_send_param_change(42, LFO2SpeedVal);
+        serial_send_param_change(42, (uint16_t)LFO2Speed);
+        break;
+
+      case ACTION_VCA_level:
+        if (encoderActionIsSelected) {
+          if (direction == DIR_CW) {
+            VCALevel = VCALevel + (2 + (5 * speed));
+          } else {
+            VCALevel = VCALevel - (2 + (5 * speed));
+          }
+          VCALevel = constrain(VCALevel, 0, 128);
+        }
+        serial_send_param_change_byte(43, (uint8_t)VCALevel);
+        break;
+
+      case ACTION_LFO1_to_VCA:
+        if (encoderActionIsSelected) {
+          if (direction == DIR_CW) {
+            LFO1toVCA = LFO1toVCA + (1 + (1 * speed));
+          } else {
+            LFO1toVCA = LFO1toVCA - (1 + (1 * speed));
+          }
+          LFO1toVCA = constrain(LFO1toVCA, 0, 1023);
+        }
+        serial_send_param_change(44, (uint16_t)LFO1toVCA);
+        break;
+
+      case ACTION_LFO2_to_PWM:
+        if (encoderActionIsSelected) {
+          if (direction == DIR_CW) {
+            LFO2toPWM = LFO2toPWM + (1 + (1 * speed));
+          } else {
+            LFO2toPWM = LFO2toPWM - (1 + (1 * speed));
+          }
+          LFO2toPWM = constrain(LFO2toPWM, 0, 511);
+        }
+        serial_send_param_change(45, (uint16_t)LFO2toPWM);
+        break;
+
+      case ACTION_ADSR3_to_PWM:
+        if (encoderActionIsSelected) {
+          if (direction == DIR_CW) {
+            ADSR3toPWM = ADSR3toPWM + (1 + (1 * speed));
+          } else {
+            ADSR3toPWM = ADSR3toPWM - (1 + (1 * speed));
+          }
+          ADSR3toPWM = constrain(ADSR3toPWM, -512, 511);
+        }
+        serial_send_param_change(46, (uint16_t)ADSR3toPWM + 512);
+        break;
+
+      case ACTION_ADSR_CURVE_ATTACK:
+        {
+          int a = 0;
+          if (encoderActionIsSelected) {
+            if (direction == DIR_CW) {
+              a = 1;
+            } else {
+              a = -1;
+            }
+          }
+          if (ADSR1CurveSelect == true) {
+            ADSR1AttackCurveVal = constrain(ADSR1AttackCurveVal + a, 0, 7);
+            serial_send_param_change_byte(48, (uint8_t)ADSR1AttackCurveVal);
+          } else if (ADSR2CurveSelect == true) {
+            ADSR2AttackCurveVal = constrain(ADSR2AttackCurveVal + a, 0, 7);
+            serial_send_param_change_byte(50, (uint8_t)ADSR2AttackCurveVal);
+          }
+          break;
+        }
+      case ACTION_ADSR_CURVE_DECAY:
+        {
+          int a = 0;
+          if (encoderActionIsSelected) {
+            if (direction == DIR_CW) {
+              a = 1;
+            } else {
+              a = -1;
+            }
+          }
+          if (ADSR1CurveSelect == true) {
+            ADSR1DecayCurveVal = constrain(ADSR1DecayCurveVal + a, 0, 7);
+            serial_send_param_change_byte(49, (uint8_t)ADSR1DecayCurveVal);
+          } else if (ADSR2CurveSelect == true) {
+            ADSR2DecayCurveVal = constrain(ADSR2DecayCurveVal + a, 0, 7);
+            serial_send_param_change_byte(51, (uint8_t)ADSR2DecayCurveVal);
+          }
+          break;
+        }
+      case ACTION_ANALOG_DETUNE:
+        if (encoderActionIsSelected) {
+          if (direction == DIR_CW) {
+            unisonDetune = unisonDetune + (1 + (0.5 * speed));
+          } else {
+            unisonDetune = unisonDetune - (1 + (1 * speed));
+          }
+          unisonDetune = constrain(unisonDetune, 0, 127);
+        }
+        serial_send_param_change_byte(27, (uint8_t)unisonDetune);
+        break;
+
+      case ACTION_ANALOG_DRIFT:
+        if (encoderActionIsSelected) {
+          if (direction == DIR_CW) {
+            analogDrift = analogDrift + (1 + (0.5 * speed));
+          } else {
+            analogDrift = analogDrift - (1 + (1 * speed));
+          }
+          analogDrift = constrain(analogDrift, 0, 127);
+        }
+        serial_send_param_change_byte(28, (uint8_t)analogDrift);
+        break;
+
+      case ACTION_ANALOG_DRIFT_SPEED:
+        if (encoderActionIsSelected) {
+          if (direction == DIR_CW) {
+            analogDriftSpeed = analogDriftSpeed + (1 + (0.5 * speed));
+          } else {
+            analogDriftSpeed = analogDriftSpeed - (1 + (1 * speed));
+          }
+          analogDriftSpeed = constrain(analogDriftSpeed, 1, 255);
+        }
+        serial_send_param_change_byte(29, (uint8_t)analogDriftSpeed);
+        break;
+
+      case ACTION_ANALOG_DRIFT_SPREAD:
+        if (encoderActionIsSelected) {
+          if (direction == DIR_CW) {
+            analogDriftSpread = analogDriftSpread + (1 + (0.5 * speed));
+          } else {
+            analogDriftSpread = analogDriftSpread - (1 + (1 * speed));
+          }
+          analogDriftSpread = constrain(analogDriftSpread, 1, 127);
+        }
+        serial_send_param_change_byte(30, (uint8_t)analogDriftSpread);
         break;
 
       case ACTION_select_preset:
@@ -220,82 +417,96 @@ void read_encoders() {
         } else {
           presetSelectVal = presetSelectVal - (1 + (1 * speed));
         }
-        if (presetSave) {
+        if (presetSaveSelectMode) {
           presetSelectVal = constrain(presetSelectVal, 0, 255);
-          //load_preset_name(presetSelectVal);
-          serial_send_preset_scroll(presetSelectVal, loadedName);
+
+          //serial_send_param_change_byte(140, presetSelectVal);
+          byte presetNameScroll[12];
+          get_preset_name(presetSelectVal, presetNameScroll);
+          serial_send_preset_scroll((uint8_t)presetSelectVal, presetNameScroll);
         } else {
           presetSelectVal = constrain(presetSelectVal, 0, 255);
+
           loadPreset(presetSelectVal);
-          serial_send_preset_scroll(presetSelectVal, presetName);
+          //serial_send_param_change_byte(141, presetSelectVal);
         }
         break;
 
-      case ACTION_VCA_level:
+      case ACTION_select_char:
         if (direction == DIR_CW) {
-          VCALevelVal = VCALevelVal + (2 + (5 * speed));
+          charSelectVal = charSelectVal + 1;
         } else {
-          VCALevelVal = VCALevelVal - (2 + (5 * speed));
+          charSelectVal = charSelectVal - 1;
         }
-        VCALevelVal = constrain(VCALevelVal, 0, 128);
-        VCALevel = VCALevelVal * 32;
-        serial_send_param_change_byte(43, VCALevelVal);
+        charSelectVal = constrain(charSelectVal, 32, 255);
+        presetNameVal[presetCharPos] = charSelectVal;
+        serial_send_preset_scroll(presetSelectVal, presetNameVal);  // needs fix
         break;
 
-      case ACTION_LFO1_to_VCA:
+      case ACTION_select_char_pos:
         if (direction == DIR_CW) {
-          LFO1toVCAVal = LFO1toVCAVal + (1 + (1 * speed));
+          presetCharPos = presetCharPos + 1;
         } else {
-          LFO1toVCAVal = LFO1toVCAVal - (1 + (1 * speed));
+          presetCharPos = presetCharPos - 1;
         }
-        LFO1toVCAVal = constrain(LFO1toVCAVal, 0, 1023);
-        LFO1toVCA = LFO1toVCAVal;
-        serial_send_param_change(44, LFO1toVCA);
+        if (presetCharPos > 11) {
+          presetCharPos = 0;
+        }
+        charSelectVal = presetNameVal[presetCharPos];
+        serial_send_save_char_select(presetCharPos);
         break;
 
-      case ACTION_LFO2_to_PWM:
+      case ACTION_CALIBRATION_STAGE:
+        {
+          if (direction == DIR_CW) {
+            manualCalibrationStage = manualCalibrationStage + 1;
+          } else {
+            manualCalibrationStage = manualCalibrationStage - 1;
+          }
+          manualCalibrationStage = constrain(manualCalibrationStage, 0, 15);
+          uint8_t index = (uint8_t)manualCalibrationStage / 2;
+          serial_send_param_change_byte(152, (uint8_t)manualCalibrationStage);
+          serial_send_param_change_byte(153, (uint8_t)manualCalibrationInitAmpCompOffset[index]);
+          break;
+        }
+      case ACTION_CALIBRATION_OFFSET:
+        {
+          uint8_t index = (uint8_t)manualCalibrationStage / 2;
+          if (direction == DIR_CW) {
+            manualCalibrationInitAmpCompOffset[index] = manualCalibrationInitAmpCompOffset[index] + 1;
+          } else {
+            manualCalibrationInitAmpCompOffset[index] = manualCalibrationInitAmpCompOffset[index] - 1;
+          }
+          manualCalibrationInitAmpCompOffset[index] = constrain(manualCalibrationInitAmpCompOffset[index], -15, 15);
+          serial_send_param_change_byte(153, (uint8_t)manualCalibrationInitAmpCompOffset[index]);
+        }
+        break;
+
+      case ACTION_MENU_POS:
         if (direction == DIR_CW) {
-          LFO2toPWMVal = LFO2toPWMVal + (1 + (1 * speed));
+          menuPos = menuPos + 1;
         } else {
-          LFO2toPWMVal = LFO2toPWMVal - (1 + (1 * speed));
+          menuPos = menuPos - 1;
         }
-        LFO2toPWMVal = constrain(LFO2toPWMVal, 0, 511);
-        LFO2toPWM = LFO2toPWMVal;
-        formula_update(10);
-        serial_send_param_change(45, LFO2toPWM);
+        menuPos = constrain(menuPos, 0, menuPosMax);
+        serial_send_param_change_byte(190, (uint8_t)menuPos);  // menu position
+        // switch (currentControlMode) {
+        //   case CALIBRATION_MENU:
+        // break;
+        // }
         break;
 
-      case ACTION_ADSR3_to_PWM:
-        if (direction == DIR_CW) {
-          ADSR3toPWMVal = ADSR3toPWMVal + (1 + (1 * speed));
-        } else {
-          ADSR3toPWMVal = ADSR3toPWMVal - (1 + (1 * speed));
-        }
-        ADSR3toPWMVal = constrain(ADSR3toPWMVal, -512, 511);
-        ADSR3toPWM = ADSR3toPWMVal;
-        serial_send_param_change(46, ADSR3toPWM + 512);
-        break;
 
-      case ACTION_UNISON_DETUNE:
-        if (direction == DIR_CW) {
-          unisonDetune = unisonDetune + 1;
-        } else {
-          unisonDetune = unisonDetune - 1;
-        }
-        unisonDetune = constrain(unisonDetune, 0, 127);
-        serial_send_param_change_byte(27, (uint8_t)unisonDetune);
-        break;
+        // case ACTION_calibration:
 
-      case ACTION_calibration:
-
-        if (direction == DIR_CW) {
-          calibrationVal = calibrationVal + (1 + (0.5 * speed));
-        } else {
-          calibrationVal = calibrationVal - (1 + (0.5 * speed));
-        }
-        sendUint16(calibrationVal);
-        serial_send_param_change(101, calibrationVal);
-        break;
+        //   if (direction == DIR_CW) {
+        //     calibrationVal = calibrationVal + (1 + (0.5 * speed));
+        //   } else {
+        //     calibrationVal = calibrationVal - (1 + (0.5 * speed));
+        //   }
+        //   sendUint16(calibrationVal);
+        //   serial_send_param_change(101, (uint16_t)calibrationVal);
+        //   break;
     }
   }
 }

@@ -1,7 +1,7 @@
 #ifndef __SERIAL_H__
 #define __SERIAL_H__
 
-#define ENABLE_SERIAL
+//#define ENABLE_SERIAL
 #define ENABLE_SERIAL1
 #define ENABLE_SERIAL2
 
@@ -22,6 +22,9 @@ bool serial_send_LFO1toDCOWaveChangeFlag = false;
 bool serialSendADSR3ControlValuesFlag = false;
 bool serialSendADSR3toDCOFlag = false;
 bool serialSendADSR3ToOscSelectFlag = false;
+
+void serial_send_param_change_byte(byte param, byte paramValue, bool sendToAll = true); 
+void serial_send_param_change(byte param, uint16_t paramValue, bool sendToAll = true); 
 
 #endif
 

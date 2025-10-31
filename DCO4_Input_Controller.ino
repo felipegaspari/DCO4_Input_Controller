@@ -1,25 +1,24 @@
 
 #include "Arduino.h"
-#include <Adafruit_TinyUSB.h>
+//#include <Adafruit_TinyUSB.h>
 
-#define NUM_VOICES 2
+#define NUM_VOICES 4
+#define NUM_OSCILLATORS NUM_VOICES * 2
 
-byte OSC1Interval = 24;
-byte OSC2Interval = 24;
-byte OSC2Detune = 127;
+int8_t OSC1Interval = 24;
+int8_t OSC2Interval = 24;
+int16_t OSC2Detune = 0;
 float DETUNE1;
 float DETUNE2;
 uint16_t PW;
 
-uint16_t SubLevel;
-uint16_t SQR1Level;
-uint16_t SQR2Level;
+int16_t SubLevel;
+int16_t SQR1Level;
+int16_t SQR2Level;
 
 uint16_t RESONANCE;
 uint16_t CUTOFF = 1024;
-uint16_t VCALevel = 0;
-
-#define ENABLE_SD
+int16_t VCALevel = 0;
 
 #include "params.h"
 #include "auxiliary.h"
@@ -33,35 +32,30 @@ uint16_t VCALevel = 0;
 
 #include "formulas.h"
 
+#include "FS.h"
 
-//static const float clockFreq = 168000000;
+#include "LED_control.h"
 
-uint32_t i;
-byte h;
-int val2;
-uint32_t contadorLatencia = 0;
+
 
 uint32_t tiempodeejecucion;
-
-byte SPIvalOut = 32;
-
-
+unsigned long loopStartTime;
 
 void setup() {
+  init_controls();
+  init_tables();
+}
+
+void setup1() {
+
 #ifdef ENABLE_SERIAL
   Serial.begin(2000000);
 #endif
-
-  init_controls();
-
-  init_aux();
-
-
 #ifdef ENABLE_SERIAL1
   Serial1.setRX(1);
   Serial1.setTX(0);
   Serial1.setPollingMode(true);
-  Serial1.setFIFOSize(256);
+  Serial1.setFIFOSize(512);
   Serial1.begin(2500000);
 #endif
 
@@ -69,9 +63,17 @@ void setup() {
   Serial2.setRX(5);
   Serial2.setTX(4);
   Serial2.setPollingMode(true);
-  Serial2.setFIFOSize(256);
+  Serial2.setFIFOSize(512);
   Serial2.begin(2500000);
 #endif
+
+  init_LED_control();
+
+  initFS();
+
+  pinMode(PIN_LED_PWM, OUTPUT);
+  analogWriteFreq(200000);
+  analogWrite(PIN_LED_PWM, 245);
 }
 
 void loop1() {
@@ -82,19 +84,28 @@ void loop1() {
 
   if (timer1msFlag2) {
     setControlValues();  //LO HACE EL INPUT BOARD
-    serial_send_manual_controls();
+    serial_send_manual_controls(false);
   }
 
-
-  if (timer99microsFlag) {
-    // sendSerial();
+  if (timer5msFlag2) {
+    if (ADSR3Enabled && ADSR3toDETUNE1 != 0) {
+      serialSendADSR3ControlValuesFlag = true;
+    }
   }
+
+  // if (timer99microsFlag2) {
+  // sendSerial();
+  // }
 
   //serial_read_n();
 
-  unsigned long tiempodeejecuciontotal = micros() - loopStartMicros;
+  // unsigned long tiempodeejecuciontotal = micros() - loopStartMicros;
 
-  if (timer200msFlag) {
+  if (timer31msFlag2) {
+    LED_Control_Mux.update();
+  }
+
+  if (timer200msFlag2) {
     //serial_send_param_change(22, ADSR1Level[0]);
     //drawTM(RESONANCE);
     //drawTM(CUTOFF);
@@ -105,36 +116,21 @@ void loop1() {
 
 void loop() {
 
-  i = micros();
+  // loopStartTime = micros();
 
-  //RANDOMNESS1 = (float)random1 / 1440000 * randomnessIntensity1;
-  //RANDOMNESS2 = random2 * randomnessIntensity2;
+  // RANDOMNESS1 = (float)random1 / 1440000 * randomnessIntensity1;
+  // RANDOMNESS2 = random2 * randomnessIntensity2;
 
   millisTimer();
 
-
-
   readControls();
 
-  medianFilter();
+  // uint32_t j = micros();
 
-  if (timer5msFlag) {
-    if (ADSR3Enabled && ADSR3toDETUNE1 != 0) {
-      serialSendADSR3ControlValuesFlag = true;
-    }
-  }
+  // tiempodeejecucion = (micros() - j);
 
-  // if (timer223microsFlag == 1) {
-  //   for (int i = 2; i < 20; i++) {
-  //     formula_update(i);
-  //   }
-  // }
+  // unsigned long tiempodeejecuciontotal = micros() - i;
 
-  uint32_t j = micros();
-
-  tiempodeejecucion = (micros() - j);
-
-  unsigned long tiempodeejecuciontotal = micros() - i;
   //Serial.println(tiempodeejecuciontotal);
   if (timer200msFlag) {
     //serial_send_param_change(22, ADSR1Level[0]);
@@ -155,10 +151,12 @@ void loop() {
 
 #ifdef ENABLE_SERIAL
   //drawTM(tiempodeejecucion);
+  if (timer200msFlag) {
+    Serial.print("|");
+  }
   if (1 == 2) {
-    //if ( SPIval == 111) {
-    //if (timer99microsFlag) {58
-    //if (timer31msFlag) {
+  //if (timer99microsFlag) {58
+  //if (timer200msFlag) {
     // if (tiempodeejecuciontotal > 100 ) {
     //    contadorLatencia++;
     //    float tiemposobrelatencia = (float) micros() / contadorLatencia; // baseline = 5000
@@ -201,10 +199,10 @@ void loop() {
     //    Serial.print("HOLA");
     //Serial.print((String)" -enc6" + encVal[5]);
 
-    for (int i = 0; i < 11; i++) {
-      if (i != 9 && i != 8) {
-        Serial.print((String) "MuxAnalog" + (int)i + (String) " " + (uint16_t)muxAnalogData[i] + (String) "; ");
-      }
+    for (int i = 0; i < 16; i++) {
+
+      //Serial.print((String) "MuxAnalog" + (int)i + (String) " " + (uint16_t)muxAnalogData[i] + (String) "; ");
+      Serial.print((String) " Raw" + (int)i + (String) " " + /*(uint16_t)muxAnalogRaw[i]*/ (uint16_t)muxAnalogData[i] + (String) ";   ");
     }
     //  for (int i = 0; i < 8; i++) {
     //    Serial.print((String)" -MuxFader" + (int)i + (String)": " + (uint16_t)faderMedian[i]);
