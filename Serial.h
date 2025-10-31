@@ -2,8 +2,8 @@
 #define __SERIAL_H__
 
 //#define ENABLE_SERIAL
-#define ENABLE_SERIAL1
-#define ENABLE_SERIAL2
+#define ENABLE_SERIAL1  // To
+#define ENABLE_SERIAL2  // To  
 
 void serial_read_n();
 

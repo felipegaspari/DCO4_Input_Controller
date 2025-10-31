@@ -288,7 +288,6 @@ void read_encoder_buttons() {
             LFO1Waveform = 1;
           }
         }
-        serial_send_LFO1toDCOWaveChangeFlag = true;
         serial_send_param_change_byte(11, LFO1Waveform);
 
         break;
@@ -437,8 +436,9 @@ void read_encoder_buttons() {
         ADSR3Enabled = !ADSR3Enabled;
         faderRow2ControlManual = false;
         serial_send_param_change_byte(126, (uint8_t)ADSR3Enabled);
+        serialSendADSR3ControlValuesFlag = true;
         LED_Control_Mux.blinkPin(LEDPins[11], ADSR3Enabled);
-        set_LED_Status(11, ADSR3Enabled);
+        set_LED_Status(11, faderRow2ControlManual);
         break;
 
       case TG_SYNC_MODE:

@@ -84,13 +84,11 @@ void loop1() {
 
   if (timer1msFlag2) {
     setControlValues();  //LO HACE EL INPUT BOARD
-    serial_send_manual_controls(false);
   }
 
   if (timer5msFlag2) {
-    if (ADSR3Enabled && ADSR3toDETUNE1 != 0) {
-      serialSendADSR3ControlValuesFlag = true;
-    }
+    serial_send_manual_controls(false);
+    sendSerial();
   }
 
   // if (timer99microsFlag2) {
@@ -155,8 +153,8 @@ void loop() {
     Serial.print("|");
   }
   if (1 == 2) {
-  //if (timer99microsFlag) {58
-  //if (timer200msFlag) {
+    //if (timer99microsFlag) {58
+    //if (timer200msFlag) {
     // if (tiempodeejecuciontotal > 100 ) {
     //    contadorLatencia++;
     //    float tiemposobrelatencia = (float) micros() / contadorLatencia; // baseline = 5000

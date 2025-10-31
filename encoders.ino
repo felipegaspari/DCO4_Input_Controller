@@ -209,7 +209,7 @@ void read_encoders() {
           } else {
             OSC2Interval = OSC2Interval - 1;
           }
-          OSC2Interval = constrain(OSC2Interval, 0, 48);
+          OSC2Interval = constrain(OSC2Interval, 0, 72);
         }
         serial_send_param_change_byte(14, (uint8_t)OSC2Interval);
         //serial_send_OSC2IntervalFlag = true;
@@ -246,7 +246,7 @@ void read_encoders() {
           } else {
             oscSyncMode = oscSyncMode - 1;
           }
-          oscSyncMode = constrain(oscSyncMode, 0, 3);
+          oscSyncMode = constrain(oscSyncMode, 0, 180);
         }
         serial_send_oscSyncModeFlag = true;
         serial_send_param_change_byte(17, (uint8_t)oscSyncMode);

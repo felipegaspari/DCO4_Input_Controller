@@ -1,98 +1,108 @@
-void serial_send_manual_controls(bool presetLoading) {
+inline void serial_send_manual_controls(bool presetLoading) {
   if (faderRow1ControlManual || presetLoading) {
-    byte dataArray[8];
+    byte dataArray[9];
 
-uint16_t ADSR1_attack_serial = linToExpLookup[ADSR1_attack];
-uint16_t ADSR1_decay_serial = linToExpLookup[ADSR1_decay];
-uint16_t ADSR1_release_serial = linToExpLookup[ADSR1_release];
+    // uint16_t ADSR1_attack_serial = linToExpLookup[ADSR1_attack];
+    // uint16_t ADSR1_decay_serial = linToExpLookup[ADSR1_decay];
+    // uint16_t ADSR1_release_serial = linToExpLookup[ADSR1_release];
 
-    dataArray[0] = highByte(ADSR1_attack_serial);
-    dataArray[1] = lowByte(ADSR1_attack_serial);
-    dataArray[2] = highByte(ADSR1_decay_serial);
-    dataArray[3] = lowByte(ADSR1_decay_serial);
-    dataArray[4] = highByte(ADSR1_sustain);
-    dataArray[5] = lowByte(ADSR1_sustain);
-    dataArray[6] = highByte(ADSR1_release_serial);
-    dataArray[7] = lowByte(ADSR1_release_serial);
+    dataArray[0] = (uint8_t)'a';
 
-    Serial2.write((char *)"a");
-    Serial2.write(dataArray, 8);
+    dataArray[1] = highByte(ADSR1_attack);
+    dataArray[2] = lowByte(ADSR1_attack);
+    dataArray[3] = highByte(ADSR1_decay);
+    dataArray[4] = lowByte(ADSR1_decay);
+    dataArray[5] = highByte(ADSR1_sustain);
+    dataArray[6] = lowByte(ADSR1_sustain);
+    dataArray[7] = highByte(ADSR1_release);
+    dataArray[8] = lowByte(ADSR1_release);
+
+    Serial2.write(dataArray, 9);
+    Serial1.write(dataArray, 9);
   }
 
-  if ((faderRow2ControlManual && !ADSR3Enabled)  || presetLoading) {
-    byte dataArray[8];
+  if ((faderRow2ControlManual && !ADSR3Enabled) || presetLoading) {
+    byte dataArray[9];
 
-uint16_t ADSR2_attack_serial = linToExpLookup[ADSR2_attack];
-uint16_t ADSR2_decay_serial = linToExpLookup[ADSR2_decay];
-uint16_t ADSR2_release_serial = linToExpLookup[ADSR2_release];
+    // uint16_t ADSR2_attack_serial = linToExpLookup[ADSR2_attack];
+    // uint16_t ADSR2_decay_serial = linToExpLookup[ADSR2_decay];
+    // uint16_t ADSR2_release_serial = linToExpLookup[ADSR2_release];
 
+    dataArray[0] = (uint8_t)'b';
 
-    dataArray[0] = highByte(ADSR2_attack_serial);
-    dataArray[1] = lowByte(ADSR2_attack_serial);
-    dataArray[2] = highByte(ADSR2_decay_serial);
-    dataArray[3] = lowByte(ADSR2_decay_serial);
-    dataArray[4] = highByte(ADSR2_sustain);
-    dataArray[5] = lowByte(ADSR2_sustain);
-    dataArray[6] = highByte(ADSR2_release_serial);
-    dataArray[7] = lowByte(ADSR2_release_serial);
+    dataArray[1] = highByte(ADSR2_attack);
+    dataArray[2] = lowByte(ADSR2_attack);
+    dataArray[3] = highByte(ADSR2_decay);
+    dataArray[4] = lowByte(ADSR2_decay);
+    dataArray[5] = highByte(ADSR2_sustain);
+    dataArray[6] = lowByte(ADSR2_sustain);
+    dataArray[7] = highByte(ADSR2_release);
+    dataArray[8] = lowByte(ADSR2_release);
 
-    Serial2.write((char *)"b");
-    Serial2.write(dataArray, 8);
-  } 
-  if ((faderRow2ControlManual && ADSR3Enabled)  || presetLoading) {
-    byte dataArray[8];
+    Serial2.write(dataArray, 9);
+    Serial1.write(dataArray, 9);
 
- uint16_t ADSR3_attack_serial = linToExpLookup[ADSR3_attack];
- uint16_t ADSR3_decay_serial = linToExpLookup[ADSR3_decay];
- uint16_t ADSR3_release_serial = linToExpLookup[ADSR3_release];
-
-
-    dataArray[0] = highByte(ADSR3_attack_serial);
-    dataArray[1] = lowByte(ADSR3_attack_serial);
-    dataArray[2] = highByte(ADSR3_decay_serial);
-    dataArray[3] = lowByte(ADSR3_decay_serial);
-    dataArray[4] = highByte(ADSR3_sustain);
-    dataArray[5] = lowByte(ADSR3_sustain);
-    dataArray[6] = highByte(ADSR3_release_serial);
-    dataArray[7] = lowByte(ADSR3_release_serial);
-
-    Serial2.write((char *)"c");
-    Serial2.write(dataArray, 8);
   }
 
-  if (VCFPotsControlManual  || presetLoading) {
-    byte dataArray[8];
-    dataArray[0] = highByte(CUTOFF);
-    dataArray[1] = lowByte(CUTOFF);
-    dataArray[2] = highByte(RESONANCE);
-    dataArray[3] = lowByte(RESONANCE);
-    dataArray[4] = highByte(ADSR2toVCF);
-    dataArray[5] = lowByte(ADSR2toVCF);
-    dataArray[6] = highByte(LFO2toVCF);
-    dataArray[7] = lowByte(LFO2toVCF);
+  if ((faderRow2ControlManual && ADSR3Enabled) || presetLoading) {
+    byte dataArray[9];
 
-    Serial2.write((char *)"d");
-    Serial2.write(dataArray, 8);
+    //  uint16_t ADSR3_attack_serial = linToExpLookup[ADSR3_attack];
+    //  uint16_t ADSR3_decay_serial = linToExpLookup[ADSR3_decay];
+    //  uint16_t ADSR3_release_serial = linToExpLookup[ADSR3_release];
+
+    dataArray[0] = (uint8_t)'c';
+
+    dataArray[1] = highByte(ADSR3_attack);
+    dataArray[2] = lowByte(ADSR3_attack);
+    dataArray[3] = highByte(ADSR3_decay);
+    dataArray[4] = lowByte(ADSR3_decay);
+    dataArray[5] = highByte(ADSR3_sustain);
+    dataArray[6] = lowByte(ADSR3_sustain);
+    dataArray[7] = highByte(ADSR3_release);
+    dataArray[8] = lowByte(ADSR3_release);
+
+    Serial2.write(dataArray, 9);
+    
   }
 
-  if (VCAPotsControlManual  || presetLoading) {
-    byte dataArray[2];
+  if (VCFPotsControlManual || presetLoading) {
+    byte dataArray[9];
 
-    dataArray[0] = highByte(ADSR1toVCA);
-    dataArray[1] = lowByte(ADSR1toVCA);
+    dataArray[0] = (uint8_t)'d';
 
-    Serial2.write((char *)"e");
-    Serial2.write(dataArray, 2);
+    dataArray[1] = highByte(CUTOFF);
+    dataArray[2] = lowByte(CUTOFF);
+    dataArray[3] = highByte(RESONANCE);
+    dataArray[4] = lowByte(RESONANCE);
+    dataArray[5] = highByte(ADSR2toVCF);
+    dataArray[6] = lowByte(ADSR2toVCF);
+    dataArray[7] = highByte(LFO2toVCF);
+    dataArray[8] = lowByte(LFO2toVCF);
+
+    Serial2.write(dataArray, 9);
   }
 
-  if (PWMPotsControlManual  || presetLoading) {
-    byte dataArray[2];
+  if (VCAPotsControlManual || presetLoading) {
+    byte dataArray[3];
 
-    dataArray[0] = highByte(PW);
-    dataArray[1] = lowByte(PW);
+    dataArray[0] = (uint8_t)'e';
 
-    Serial2.write((char *)"f");
-    Serial2.write(dataArray, 2);
+    dataArray[1] = highByte(ADSR1toVCA);
+    dataArray[2] = lowByte(ADSR1toVCA);
+
+    Serial2.write(dataArray, 3);
+  }
+
+  if (PWMPotsControlManual || presetLoading) {
+    byte dataArray[3];
+
+    dataArray[0] = (uint8_t)'f';
+
+    dataArray[1] = highByte(PW);
+    dataArray[2] = lowByte(PW);
+
+    Serial2.write(dataArray, 3);
   }
 }
 
@@ -159,15 +169,24 @@ void sendSerial() {  // to DCO
 
   if (serialSendADSR3ControlValuesFlag) {
     if (Serial2.availableForWrite() > 4) {
-      byte ADSR3BytesArray[5];
-      ADSR3BytesArray[0] = (byte)'s';
-      ADSR3BytesArray[1] = (byte)(ADSR3_attack / 16);
-      ADSR3BytesArray[2] = (byte)(ADSR3_decay / 16);
-      ADSR3BytesArray[3] = (byte)(ADSR3_sustain / 16);
-      ADSR3BytesArray[4] = (byte)(ADSR3_release / 16);
-      //Serial2.write((char *)"s");
-      Serial2.write(ADSR3BytesArray, 5);
-      serialSendADSR3ControlValuesFlag = false;
+      byte dataArray[9];
+
+      //  uint16_t ADSR3_attack_serial = linToExpLookup[ADSR3_attack];
+      //  uint16_t ADSR3_decay_serial = linToExpLookup[ADSR3_decay];
+      //  uint16_t ADSR3_release_serial = linToExpLookup[ADSR3_release];
+
+      dataArray[0] = (uint8_t)'c';
+      dataArray[1] = highByte(ADSR3_attack);
+      dataArray[2] = lowByte(ADSR3_attack);
+      dataArray[3] = highByte(ADSR3_decay);
+      dataArray[4] = lowByte(ADSR3_decay);
+      dataArray[5] = highByte(ADSR3_sustain);
+      dataArray[6] = lowByte(ADSR3_sustain);
+      dataArray[7] = highByte(ADSR3_release);
+      dataArray[8] = lowByte(ADSR3_release);
+
+
+      Serial2.write(dataArray, 9);
     }
   }
 

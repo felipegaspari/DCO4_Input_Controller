@@ -273,7 +273,7 @@ delay(2);
   serial_send_param_change_byte(50, (uint8_t)ADSR2AttackCurveVal, false);
   serial_send_param_change_byte(51, (uint8_t)ADSR2DecayCurveVal, false);
 
-  delay(100);
+  delay(10);
   // includes:
   // CUTOFF                   ------  PARAM GROUP VCF
   // RESONANCE                ------  PARAM GROUP VCF
@@ -313,6 +313,9 @@ delay(2);
 
   serial_send_preset_scroll(currentPreset, presetName);
   serial_send_signal(1);  // Screen silence ENDs
+
+  set_LED_Status(16, 0);
+  
 }
 
 void get_preset_name(byte presetN, byte (&myarray)[12]) {
@@ -518,6 +521,7 @@ void writePreset(uint16_t presetN) {
   for (int i = 0; i > 12; i++) {
     presetName[i] = presetNameVal[i];
   }
+
   set_LED_Status(16, 0);
 
   loadPreset(currentPreset);  // FIX AND REMOVE !!!!!!!!

@@ -37,7 +37,7 @@ bool RESONANCEAmpCompensation = true;
 bool VCFADSRRestart = true;
 bool VCAADSRRestart = true;
 int16_t VCFKeytrack = 0;
-int8_t oscSyncMode = 0;
+int16_t oscSyncMode = 0;
 
 int8_t ADSR3ToOscSelect;
 
