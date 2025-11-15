@@ -19,6 +19,10 @@ void initFS() {
 
 void load_preset_name(byte destinationPreset) {
 
+  if (destinationPreset >= NUM_PRESETS) {
+    return;
+  }
+
   uint16_t startByteN = destinationPreset * flashPresetSize;
 
   loadedName[0] = presetBank1Buffer[119 + startByteN];
@@ -36,6 +40,10 @@ void load_preset_name(byte destinationPreset) {
 }
 
 void loadPreset(uint16_t presetN) {
+
+  if (presetN >= NUM_PRESETS) {
+    return;
+  }
 
   byte unused_data;
   uint16_t unused_data_uint16_t;
@@ -75,7 +83,10 @@ void loadPreset(uint16_t presetN) {
   unused_data = bitRead(flashData[1], 6);
   unused_data = bitRead(flashData[1], 7);
 
-  unused_data = flashData[2];
+  // format / version info lives in flashData[2] (per-preset header byte).
+  // For legacy presets saved with older firmware this will be 0.
+  uint8_t presetFormatVersion = flashData[2];
+  (void)presetFormatVersion; // currently unused; reserved for future layout changes
   unused_data = flashData[3];
   unused_data = flashData[4];
   unused_data = flashData[5];
@@ -189,89 +200,89 @@ void loadPreset(uint16_t presetN) {
 
   delay(10);
 
-  serial_send_param_change_byte(124, 0, false);  // PWM control Manual off after loading
-  serial_send_param_change_byte(126, 0, false);  // ADSR3Enabled OFF
+  serial_send_param_change_byte(PARAM_PWM_POTS_CONTROL_MANUAL, 0, false);  // PWM control Manual off after loading
+  serial_send_param_change_byte(PARAM_ADSR3_ENABLED,           0, false);  // ADSR3Enabled OFF
 
-  serial_send_param_change_byte(1, (uint8_t)sawStatus, false);
-  serial_send_param_change_byte(2, (uint8_t)saw2Status, false);
-  serial_send_param_change_byte(3, (uint8_t)triStatus, false);
-  serial_send_param_change_byte(4, (uint8_t)sineStatus, false);
-  serial_send_param_change_byte(5, (uint8_t)sqr1Status, false);
-  serial_send_param_change_byte(6, (uint8_t)sqr2Status, false);
+  serial_send_param_change_byte(PARAM_SAW_STATUS,              (int8_t)sawStatus,   false);
+  serial_send_param_change_byte(PARAM_SAW2_STATUS,             (int8_t)saw2Status,  false);
+  serial_send_param_change_byte(PARAM_TRI_STATUS,              (int8_t)triStatus,   false);
+  serial_send_param_change_byte(PARAM_SINE_STATUS,             (int8_t)sineStatus,  false);
+  serial_send_param_change_byte(PARAM_SQR1_STATUS,             (int8_t)sqr1Status,  false);
+  serial_send_param_change_byte(PARAM_SQR2_STATUS,             (int8_t)sqr2Status,  false);
 
   set_LED_Status(16, 0);
 
   delay(2);
 
-  serial_send_param_change_byte(7, (uint8_t)RESONANCEAmpCompensation, false);
-  serial_send_param_change_byte(8, (uint8_t)VCAADSRRestart, false);
-  serial_send_param_change_byte(9, (uint8_t)VCFADSRRestart, false);
-  serial_send_param_change_byte(10, (uint8_t)ADSR3ToOscSelect, false);
+  serial_send_param_change_byte(PARAM_RESONANCE_COMPENSATION,  (int8_t)RESONANCEAmpCompensation, false);
+  serial_send_param_change_byte(PARAM_VCA_ADSR_RESTART,        (int8_t)VCAADSRRestart,           false);
+  serial_send_param_change_byte(PARAM_VCF_ADSR_RESTART,        (int8_t)VCFADSRRestart,           false);
+  serial_send_param_change_byte(PARAM_ADSR3_TO_OSC_SELECT,     (int8_t)ADSR3ToOscSelect,         false);
 
   // LFO1Waveform
-  serial_send_param_change_byte(11, (uint8_t)LFO1Waveform, false);
+  serial_send_param_change_byte(PARAM_LFO1_WAVEFORM, (int8_t)LFO1Waveform, false);
   // LFO2Waveform
-  serial_send_param_change_byte(12, (uint8_t)LFO2Waveform, false);
+  serial_send_param_change_byte(PARAM_LFO2_WAVEFORM, (int8_t)LFO2Waveform, false);
   
 delay(2);
 
-  serial_send_param_change_byte(13, (uint8_t)OSC1Interval, false);
-  serial_send_param_change_byte(14, (uint8_t)OSC2Interval, false);
+  serial_send_param_change_byte(PARAM_OSC1_INTERVAL, (int8_t)OSC1Interval, false);
+  serial_send_param_change_byte(PARAM_OSC2_INTERVAL, (int8_t)OSC2Interval, false);
 
-  serial_send_param_change_byte(17, (uint8_t)oscSyncMode, false);
+  serial_send_param_change_byte(PARAM_OSC_SYNC_MODE, (int8_t)oscSyncMode,  false);
 
-  serial_send_param_change_byte(18, (uint8_t)portamentoTime, false);
+  serial_send_param_change_byte(PARAM_PORTAMENTO_TIME, (int8_t)portamentoTime, false);
 
-  serial_send_param_change_byte(26, (uint8_t)voiceMode, false);
+  serial_send_param_change_byte(PARAM_VOICE_MODE, (int8_t)voiceMode, false);
 
 delay(2);
 
-  serial_send_param_change_byte(10, (uint8_t)ADSR3ToOscSelect, false);
+  serial_send_param_change_byte(PARAM_ADSR3_TO_OSC_SELECT, (int8_t)ADSR3ToOscSelect, false);
 
-  serial_send_param_change_byte(20, (uint8_t)velocityToVCF, false);
-  serial_send_param_change_byte(21, (uint8_t)velocityToVCA, false);
+  serial_send_param_change_byte(PARAM_VELOCITY_TO_VCF, (int8_t)velocityToVCF, false);
+  serial_send_param_change_byte(PARAM_VELOCITY_TO_VCA, (int8_t)velocityToVCA, false);
 
-  serial_send_param_change_byte(22, (uint8_t)SQR1Level, true);
-  serial_send_param_change_byte(23, (uint8_t)SQR2Level, true);
-  serial_send_param_change_byte(24, (uint8_t)SubLevel, true);
+  serial_send_param_change_byte(PARAM_SQR1_LEVEL, (int8_t)SQR1Level, true);
+  serial_send_param_change_byte(PARAM_SQR2_LEVEL, (int8_t)SQR2Level, true);
+  serial_send_param_change_byte(PARAM_SUB_LEVEL,  (int8_t)SubLevel,  true);
 
-  serial_send_param_change_byte(27, (uint8_t)unisonDetune, false);  //  unisonDetune
-  serial_send_param_change_byte(28, (uint8_t)analogDrift, false);   //  analogDrift
-  serial_send_param_change_byte(29, (uint8_t)analogDriftSpeed, false);   //  analogDriftSpeed
-  serial_send_param_change_byte(30, (uint8_t)analogDriftSpread, false);   //  analogDriftSpread
+  serial_send_param_change_byte(PARAM_UNISON_DETUNE,       (int8_t)unisonDetune,    false);
+  serial_send_param_change_byte(PARAM_ANALOG_DRIFT_AMOUNT, (int8_t)analogDrift,     false);
+  serial_send_param_change_byte(PARAM_ANALOG_DRIFT_SPEED,  (int8_t)analogDriftSpeed,false);
+  serial_send_param_change_byte(PARAM_ANALOG_DRIFT_SPREAD, (int8_t)analogDriftSpread,false);
   
-  serial_send_param_change_byte(31, (uint8_t)syncMode, false);
+  serial_send_param_change_byte(PARAM_SYNC_MODE, (int8_t)syncMode, false);
 
 delay(2);
 
-  serial_send_param_change(40, (uint16_t)LFO1toDCO, false);  // LFO1toDCO
+  serial_send_param_change(PARAM_LFO1_TO_DCO,   (int16_t)LFO1toDCO,   false);  // LFO1toDCO
 
-  serial_send_param_change(41, (uint16_t)LFO1Speed, false);  // LFO1Speed
+  serial_send_param_change(PARAM_LFO1_SPEED,    (int16_t)LFO1Speed,   false);  // LFO1Speed
 
-  serial_send_param_change(42, (uint16_t)LFO2Speed, false);  // LFO2Speed
+  serial_send_param_change(PARAM_LFO2_SPEED,    (int16_t)LFO2Speed,   false);  // LFO2Speed
 
-  serial_send_param_change(43, (uint16_t)VCALevel, false);
+  serial_send_param_change(PARAM_VCA_LEVEL,     (int16_t)VCALevel,    false);
 
-  serial_send_param_change(44, (uint16_t)LFO1toVCA, false);
+  serial_send_param_change(PARAM_LFO1_TO_VCA,   (int16_t)LFO1toVCA,   false);
 
-  serial_send_param_change(45, (uint16_t)LFO2toPWM, false);  // LFO2toPWM
+  serial_send_param_change(PARAM_LFO2_TO_PW,    (int16_t)LFO2toPWM,   false);  // LFO2toPWM
 delay(2);
-  serial_send_param_change(46, (uint16_t)ADSR3toPWM + 512, false);  // ADSR3toPWM
+  serial_send_param_change(PARAM_ADSR3_TO_PWM,    (int16_t)ADSR3toPWM + 512, false);  // ADSR3toPWM
 
-  serial_send_param_change(47, (uint16_t)ADSR3toDETUNE1, false);  // ADSR3toDETUNE1
+  serial_send_param_change(PARAM_ADSR3_TO_DETUNE1,(int16_t)ADSR3toDETUNE1,   false);  // ADSR3toDETUNE1
 
-  serial_send_param_change(15, (uint16_t)OSC2Detune, false);  // OSC2Detune
+  serial_send_param_change(PARAM_OSC2_DETUNE_VAL, (int16_t)OSC2Detune,       false);  // OSC2Detune
 
-  serial_send_param_change(16, (uint16_t)LFO2toOSC2DETUNE, false);  // LFO2toOSC2DETUNE
+  serial_send_param_change(PARAM_LFO2_TO_DETUNE2, (int16_t)LFO2toOSC2DETUNE, false);  // LFO2toOSC2DETUNE
 
   serial_send_manual_controls(true);  
   
   delay(2);
 
-    serial_send_param_change_byte(48, (uint8_t)ADSR1AttackCurveVal, false);
-  serial_send_param_change_byte(49, (uint8_t)ADSR1DecayCurveVal, false);
-  serial_send_param_change_byte(50, (uint8_t)ADSR2AttackCurveVal, false);
-  serial_send_param_change_byte(51, (uint8_t)ADSR2DecayCurveVal, false);
+  serial_send_param_change_byte(PARAM_ADSR1_ATTACK_CURVE, (int8_t)ADSR1AttackCurveVal, false);
+  serial_send_param_change_byte(PARAM_ADSR1_DECAY_CURVE,  (int8_t)ADSR1DecayCurveVal,  false);
+  serial_send_param_change_byte(PARAM_ADSR2_ATTACK_CURVE, (int8_t)ADSR2AttackCurveVal, false);
+  serial_send_param_change_byte(PARAM_ADSR2_DECAY_CURVE,  (int8_t)ADSR2DecayCurveVal,  false);
 
   delay(100);
   // includes:
@@ -316,6 +327,9 @@ delay(2);
 }
 
 void get_preset_name(byte presetN, byte (&myarray)[12]) {
+  if (presetN >= NUM_PRESETS) {
+    return;
+  }
   uint16_t startByteN = presetN * flashPresetSize;
   for (int i = 0; i < 12; i++) {
     myarray[i] = presetBank1Buffer[startByteN + 119 + i];
@@ -323,6 +337,10 @@ void get_preset_name(byte presetN, byte (&myarray)[12]) {
 }
 
 void writePreset(uint16_t presetN) {
+
+  if (presetN >= NUM_PRESETS) {
+    return;
+  }
 
   faderRow1ControlManual = false;
   faderRow2ControlManual = false;
@@ -332,7 +350,6 @@ void writePreset(uint16_t presetN) {
   ADSR3Enabled = false;
 
   uint16_t startByteN = presetN * flashPresetSize;
-  byte *b;
 
   // bits
   bitWrite(flashData[0], 0, sawStatus);
@@ -356,6 +373,8 @@ void writePreset(uint16_t presetN) {
   flashData[3] = 0;
   flashData[4] = 0;
   flashData[5] = 0;
+  // flashData[2] doubles as a tiny per-preset format/version header.
+  flashData[2] = PRESET_FORMAT_VERSION;
 
   // int8_t
   flashData[6] = (byte)LFO1Waveform;
@@ -502,7 +521,6 @@ void writePreset(uint16_t presetN) {
   fileBank1 = LittleFS.open("presetBank1", "r+");
   fileBank1.seek(startByteN);
   fileBank1.write(flashData, flashPresetSize);
-  fileBank1.read(presetBank1Buffer, flashBankSize);
   fileBank1.close();
 
   for (int i = 0; i < flashPresetSize; i++) {
@@ -515,12 +533,11 @@ void writePreset(uint16_t presetN) {
   currentPreset = presetN;
   presetSelectVal = currentPreset;
 
-  for (int i = 0; i > 12; i++) {
+  for (int i = 0; i < 12; i++) {
     presetName[i] = presetNameVal[i];
   }
   set_LED_Status(16, 0);
 
-  loadPreset(currentPreset);  // FIX AND REMOVE !!!!!!!!
 }
 
 void writePresetActions(uint16_t presetN) {
