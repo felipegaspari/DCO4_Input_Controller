@@ -420,8 +420,8 @@ void read_encoders() {
         if (presetSaveSelectMode) {
           presetSelectVal = constrain(presetSelectVal, 0, 255);
 
-          //serial_send_param_change_byte(140, presetSelectVal);
-          byte presetNameScroll[12];
+          // Update screen with selected preset name (16 chars)
+          byte presetNameScroll[16];
           get_preset_name(presetSelectVal, presetNameScroll);
           serial_send_preset_scroll((uint8_t)presetSelectVal, presetNameScroll);
         } else {
@@ -449,7 +449,7 @@ void read_encoders() {
         } else {
           presetCharPos = presetCharPos - 1;
         }
-        if (presetCharPos > 11) {
+        if (presetCharPos > 15) {
           presetCharPos = 0;
         }
         charSelectVal = presetNameVal[presetCharPos];

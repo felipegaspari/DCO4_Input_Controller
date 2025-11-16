@@ -1,5 +1,3 @@
-#include "FS.h"
-
 void initFS() {
   LittleFS.begin();
 
