@@ -89,11 +89,35 @@ enum ParamId : uint16_t {
   PARAM_ADSR2_ATTACK_CURVE       = 50,  // ADSR2AttackCurveVal
   PARAM_ADSR2_DECAY_CURVE        = 51,  // ADSR2DecayCurveVal
 
-  // --- Misc / control flags ----------------------------------------
-  PARAM_PWM_POTS_CONTROL_MANUAL  = 124, // PWMPotsControlManual
+  // --- Misc / control / UI flags -----------------------------------
+  // Calibration mode selector (screen/UI only for now)
+  PARAM_CALIBRATION_MODE         = 101, // "CALIB MODE" on screen
 
-  PARAM_ADSR3_ENABLED            = 126, // ADSR3Enabled (mainboard-only)
+  // Global/manual control flags (input+screen; mainboard/DCO may ignore)
+  PARAM_FADERS_CONTROL_MANUAL    = 120, // MAN FADERS (both rows)
+  PARAM_FADER_ROW1_CONTROL_MANUAL= 121, // MAN FADERS 1
+  PARAM_FADER_ROW2_CONTROL_MANUAL= 122, // MAN FADERS 2
+  PARAM_VCF_POTS_CONTROL_MANUAL  = 123, // MANUAL VCF
+  PARAM_PWM_POTS_CONTROL_MANUAL  = 124, // MANUAL PWM
+  PARAM_ALL_CONTROLS_MANUAL      = 125, // ALL CONTROLS MANUAL
+
+  PARAM_ADSR3_ENABLED            = 126, // ADSR3Enabled (mainboard/input/screen)
   PARAM_FUNCTION_KEY             = 127, // FUNCTION KEY
+
+  PARAM_VCA_POTS_CONTROL_MANUAL  = 128, // MANUAL VCA
+  PARAM_POTS_CONTROL_MANUAL      = 129, // MANUAL POTS (global pot manual)
+
+  // UI navigation / calibration helper parameters (screen-focused)
+  PARAM_UI_MENU_POSITION         = 190, // menuPos on input/screen
+  PARAM_UI_CALIBRATION_DISMISS   = 199, // hide calibration UI / dialog
+  PARAM_UI_CALIBRATION_MENU_MODE = 200, // enter/exit calibration menu
+
+  // Reserved / screen-only extras (future expansion)
+  PARAM_PW_VALUE                 = 210, // "PW" on screen (alternative to 'f' block)
+  PARAM_LFO3_SPEED               = 211, // "LFO3 Speed" (future)
+  PARAM_LFO3_WAVEFORM            = 212, // "LFO3 Shape" (future)
+  PARAM_ADSR3_RESTART            = 214, // "ADSR3 Restart" (future)
+  PARAM_VCA_LEVEL_ALT            = 215, // second VCA level mapping (screen-only)
 
   // --- Calibration flags (shared) ----------------------------------
   PARAM_CALIBRATION_FLAG         = 150,

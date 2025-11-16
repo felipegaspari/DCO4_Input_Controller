@@ -488,7 +488,8 @@ void read_encoders() {
           menuPos = menuPos - 1;
         }
         menuPos = constrain(menuPos, 0, menuPosMax);
-        serial_send_param_change_byte(190, (uint8_t)menuPos);  // menu position
+        serial_send_param_change_byte(PARAM_UI_MENU_POSITION,
+                                      (int8_t)menuPos);  // menu position
         // switch (currentControlMode) {
         //   case CALIBRATION_MENU:
         // break;
