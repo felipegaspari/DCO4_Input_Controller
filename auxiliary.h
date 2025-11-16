@@ -48,7 +48,7 @@ SimpleKalmanFilter(e_mea_2, e_est_2, q_value_2),
 
 #define LIN_TO_EXP_TABLE_SIZE 4096
 uint16_t linToExpLookup[LIN_TO_EXP_TABLE_SIZE];
-uint16_t maxADSRControlValue = 40000;
+uint16_t maxADSRControlValue = 25000;
 
 float mapFloat(float x, float in_min, float in_max, float out_min,
                float out_max) {

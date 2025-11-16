@@ -154,7 +154,7 @@ void loop() {
   if (timer200msFlag) {
     Serial.print("|");
   }
-  if (1 == 2) {
+  if (1 == 1) {
   //if (timer99microsFlag) {58
   //if (timer200msFlag) {
     // if (tiempodeejecuciontotal > 100 ) {
@@ -199,17 +199,22 @@ void loop() {
     //    Serial.print("HOLA");
     //Serial.print((String)" -enc6" + encVal[5]);
 
-    for (int i = 0; i < 16; i++) {
+    // Serial.print((String) "ADSR3_attack:" +  (uint16_t)ADSR3_attack + (String) "   ");
+    // Serial.print((String) ",ADSR3_decay:" + (uint16_t)ADSR3_decay + (String) "   ");
+    // Serial.print((String) ",ADSR3_sustain:" +  (uint16_t)ADSR3_sustain + (String) "   ");
+    // Serial.print((String) ",ADSR3_release:" +  (uint16_t)ADSR3_release + (String) "   ");
+    // Serial.println();
 
-      //Serial.print((String) "MuxAnalog" + (int)i + (String) " " + (uint16_t)muxAnalogData[i] + (String) "; ");
-      Serial.print((String) " Raw" + (int)i + (String) " " + /*(uint16_t)muxAnalogRaw[i]*/ (uint16_t)muxAnalogData[i] + (String) ";   ");
-    }
+     for (int i = 0; i < 16; i++) {
+
+    // Serial.print((String) ", MuxAnalog" + (int)i + (String) " " + (uint16_t)muxAnalogData[i] + (String) "   ");
+       Serial.print((String) ", MUXAnalogFiltered" + (int)i + (String) ":" + /*(uint16_t)muxAnalogRaw[i]*/ (uint16_t)muxAnalogData[i] + (String) "   ");
+     }
     //  for (int i = 0; i < 8; i++) {
-    //    Serial.print((String)" -MuxFader" + (int)i + (String)": " + (uint16_t)faderMedian[i]);
+    //    Serial.print((String)", -MuxFader" + (int)i + (String)": " + (uint16_t)faderMedian[i]);
     //  }
     // Serial.print(note[0]);
     //Serial.print(analogRead(PC0));
-    Serial.println();
   }
 #endif
 }
