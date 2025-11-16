@@ -160,7 +160,6 @@ void loop() {
   if (timer200msFlag) {
 
   // One-shot preset bank dump at boot for debugging. Comment out when done.
-  dumpPresetBankToSerial();
 
     Serial.print("|");
   }

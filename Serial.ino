@@ -71,11 +71,9 @@ void serial_send_param_change_byte(byte param, byte paramValue, bool sendToAll) 
 }
 
 void serial_send_preset_name_to_mainboard() {
-
   Serial2.write((char *)"q");
-
-  Serial2.write(presetNameVal, 12);
-
+  // Mainboard-side 'q' (input link) expects 8 chars; send first 8 only.
+  Serial2.write(presetNameVal, 8);
   Serial2.write(finishByte);
 }
 
@@ -86,9 +84,8 @@ void serial_send_preset_scroll(byte presetNumber, byte presetNameSerial[]) {
   Serial1.write((char *)"q");
 
   Serial1.write(presetNumber);
-
-  Serial1.write(presetNameSerial, 12);
-
+  // Screen-side 'q' uses 16-character names.
+  Serial1.write(presetNameSerial, 16);
   Serial1.write(finishByte);
 #endif
 }

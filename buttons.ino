@@ -332,7 +332,7 @@ void read_encoder_buttons() {
           presetSaveMode        = false;
           presetSaveSelectMode  = false;
           charSelectVal         = 0;
-          for (int i = 0; i < 12; i++) {
+          for (int i = 0; i < 16; i++) {
             presetNameVal[i] = presetName[i];
           }
           charSelectVal = 0;
@@ -388,7 +388,7 @@ void read_encoder_buttons() {
           // Move from preset-select into name-edit mode.
           serial_send_signal(4);   // SAVE MODE - set preset name
           presetSaveMode = true;
-          for (int i = 0; i < 12; i++) {
+          for (int i = 0; i < 16; i++) {
             presetNameVal[i] = presetName[i];
           }
 

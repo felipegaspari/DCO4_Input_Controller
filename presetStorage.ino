@@ -217,18 +217,22 @@ void loadPreset(uint16_t presetN) {
 
   unused_data = flashData[118];
 
-  presetName[0] = flashData[119];
-  presetName[1] = flashData[120];
-  presetName[2] = flashData[121];
-  presetName[3] = flashData[122];
-  presetName[4] = flashData[123];
-  presetName[5] = flashData[124];
-  presetName[6] = flashData[125];
-  presetName[7] = flashData[126];
-  presetName[8] = flashData[127];
-  presetName[9] = flashData[128];
+  presetName[0]  = flashData[119];
+  presetName[1]  = flashData[120];
+  presetName[2]  = flashData[121];
+  presetName[3]  = flashData[122];
+  presetName[4]  = flashData[123];
+  presetName[5]  = flashData[124];
+  presetName[6]  = flashData[125];
+  presetName[7]  = flashData[126];
+  presetName[8]  = flashData[127];
+  presetName[9]  = flashData[128];
   presetName[10] = flashData[129];
   presetName[11] = flashData[130];
+  presetName[12] = flashData[131];
+  presetName[13] = flashData[132];
+  presetName[14] = flashData[133];
+  presetName[15] = flashData[134];
 
   /**********************************************************************************/
   /////////////////// START NEW STUFF //
@@ -384,7 +388,7 @@ void dumpPresetBankToSerial() {
     Serial.print(F("  name=\""));
 
     uint32_t nameOffset = startByteN + 119;
-    for (uint8_t i = 0; i < 12; ++i) {
+  for (uint8_t i = 0; i < 16; ++i) {
       char c = (char)presetBank1Buffer[nameOffset + i];
       if (c < 32) c = ' ';
       Serial.print(c);
@@ -403,12 +407,12 @@ void dumpPresetBankToSerial() {
 #endif
 }
 
-void get_preset_name(byte presetN, byte (&myarray)[12]) {
+void get_preset_name(byte presetN, byte (&myarray)[16]) {
   if (presetN >= NUM_PRESETS) {
     return;
   }
   uint16_t startByteN = presetN * flashPresetSize;
-  for (int i = 0; i < 12; i++) {
+  for (int i = 0; i < 16; i++) {
     myarray[i] = presetBank1Buffer[startByteN + 119 + i];
   }
 }
@@ -585,6 +589,10 @@ void writePreset(uint16_t presetN) {
   flashData[128] = presetNameVal[9];
   flashData[129] = presetNameVal[10];
   flashData[130] = presetNameVal[11];
+  flashData[131] = presetNameVal[12];
+  flashData[132] = presetNameVal[13];
+  flashData[133] = presetNameVal[14];
+  flashData[134] = presetNameVal[15];
 
   // byte noiseLevel;
   // uint16_t aftertouch;
