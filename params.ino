@@ -1,143 +1,162 @@
-// // Central parameter router for the Input Controller.
-// //
-// // This MCU is primarily a SOURCE of parameter changes (it sends 'p'/'w'
-// // frames out to the mainboard and screen), but it can also receive parameters
-// // in the future if we choose to route them here.
-// //
-// // The pattern is identical to the mainboard and DCO:
-// //   - ParamId definitions live in params_def.h
-// //   - apply_param_*() functions update local state
-// //   - paramTable[] maps ParamId -> apply function
-// //   - update_parameters() is the single entry point
+/*void update_parameters(byte paramNumber, uint16_t paramValue) {
+  switch (paramNumber) {
+    case 1:
+      paramName = " OSC1 SAW";
+      break;
+    case 2:
+      paramName = " OSC2 SAW";
+      break;
+    case 3:
+      paramName = " OSC1 TRI";
+      break;
+    case 4:
+      paramName = " OSC1 SIN";
+      break;
+    case 5:
+      paramName = " OSC1 SQR";
+      break;
+    case 6:
+      paramName = " OSC2 SQR";
+      break;
+    case 7:
+      paramName = " ResoAmpComp";
+      break;
+    case 8:
+      paramName = " ADSR1 Restart";
+      break;
+    case 9:
+      paramName = " ADSR2 Restart";
+      break;
+    case 10:
+      switch (paramValue) {
+        case 0:
+          paramName = " ADSR3 TO OSC1";
+          break;
+        case 1:
+          paramName = " ADSR3 TO OSC2";
+          break;
+        case 2:
+          paramName = " ADSR3 TO BOTH";
+      }
+      break;
+    case 11:
+      paramName = " LFO1 Shape";
+      break;
+    case 12:
+      paramName = " LFO2 Shape";
+      break;
+    case 13:
+      paramName = " Octave";
+      paramValue = (paramValue - 36) / 12;
+      break;
+    case 14:
+      paramName = " OSC2 Interval";
+      paramValue -= 24;
+      break;
+    case 15:
+      paramName = " OSC2 Detune";
+      paramValue -= 127;
+      break;
+    case 16:
+      paramName = " LFO2->OSC2 Pitch";
+      break;
+    case 17:
+      paramName = " OscPhaseSync";
+      break;
+    case 18:
+      paramName = " Portamento";
+      break;
+    case 19:
+      paramName = " VCF Keytrack";
+      break;
+    case 20:
+      paramName = " Velocity -> VCF";
+      break;
+    case 21:
+      paramName = " Velocity -> VCA";
+      break;
+    case 22:
+      paramName = " SQR1 Level";
+      break;
+    case 23:
+      paramName = " SQR2 Level";
+      break;
+    case 24:
+      paramName = " SUB Level";
+      break;
+    case 25:
+      paramName = " CALIBRATION VAL";
+      break;
 
-// #include "param_router.h"
 
-// using ParamValueT     = int16_t;             // 16-bit transport on this MCU
-// using ParamDescriptor = ParamDescriptorT<ParamValueT>;
+    case 40:
+      paramName = " LFO1 -> Pitch";
+      break;
+    case 41:
+      paramName = " LFO1 Speed";
+      break;
+    case 42:
+      paramName = " LFO2 Speed";
+      break;
+    case 43:
+      paramName = " VCA -> LEVEL";
+      break;
+    case 44:
+      paramName = " LFO1 -> VCA";
+      break;
+    case 45:
+      paramName = " LFO2 -> PWM";
+      break;
+    case 46:
+      paramName = " ADSR3 -> PWM";
+      paramValue -= 512;
+      break;
+    case 47:
+      paramName = " ADSR3 -> Pitch";
+      break;
+    case 48:
+      paramName = " ADSR1 Curve";
+      break;
+    case 49:
+      paramName = " ADSR2 Curve";
+      break;
 
-// // ---- Apply functions for parameters this MCU cares about ---------------
+    case 126:
+      paramName = " ADSR3 ENABLED";
+      break;
+    case 127:
+      paramName = " FUNCTION KEY";
+      break;
 
-// // Voice mode (shared, ID 26)
-// static void apply_param_voice_mode(ParamValueT v) {
-//   voiceMode = (uint8_t)v;
-// }
 
-// // Unison detune (shared, ID 27)
-// static void apply_param_unison_detune(ParamValueT v) {
-//   unisonDetune = v;
-// }
+    case 101:
+      paramName = " CALIB MODE";
+      break;
 
-// // Analog drift amount/speed/spread (shared, IDs 28..30)
-// static void apply_param_analog_drift_amount(ParamValueT v) {
-//   analogDrift = v;
-// }
+    case 200:
+      paramName = " VOICE MODE";
+      break;
+    case 201:
+      paramName = " UNISON DETUNE";
+      break;
 
-// static void apply_param_analog_drift_speed(ParamValueT v) {
-//   analogDriftSpeed = v;
-// }
+    case 210:
+      paramName = " PW";
+      break;
+    case 211:
+      paramName = " LFO3 Speed";
+      break;
+    case 212:
+      paramName = " LFO3 Shape";
+      break;
+    case 214:
+      paramName = " ADSR3 Restart";
+      break;
+    case 215:
+      paramName = " VCA -> LEVEL";
+      break;
 
-// static void apply_param_analog_drift_spread(ParamValueT v) {
-//   analogDriftSpread = v;
-// }
-
-// // Portamento time/mode (shared, IDs 18,32)
-// static void apply_param_portamento_time(ParamValueT v) {
-//   portamentoTime = v;
-// }
-
-// static void apply_param_portamento_mode(ParamValueT v) {
-//   portamentoMode = (uint8_t)v;
-// }
-
-// // Calibration value / flags (shared, IDs 25,150..153)
-// static void apply_param_calibration_value(ParamValueT v) {
-//   calibrationVal = v;
-// }
-
-// static void apply_param_calibration_flag(ParamValueT v) {
-//   manualCalibration = (v != 0);
-// }
-
-// static void apply_param_manual_calibration_stage(ParamValueT v) {
-//   manualCalibrationStage = (int8_t)v;
-// }
-
-// static void apply_param_manual_calibration_offset(ParamValueT v) {
-//   // Store offsets per oscillator; details can be adjusted as needed.
-//   uint8_t idx = (uint8_t)manualCalibrationStage;
-//   if (idx < NUM_OSCILLATORS) {
-//     manualCalibrationInitAmpCompOffset[idx] = (int8_t)v;
-//   }
-// }
-
-// // ADSR curve parameters (shared IDs 48..51)
-// static void apply_param_adsr1_attack_curve(ParamValueT v) {
-//   ADSR1AttackCurveVal = (int8_t)v;
-// }
-
-// static void apply_param_adsr1_decay_curve(ParamValueT v) {
-//   ADSR1DecayCurveVal = (int8_t)v;
-// }
-
-// static void apply_param_adsr2_attack_curve(ParamValueT v) {
-//   ADSR2AttackCurveVal = (int8_t)v;
-// }
-
-// static void apply_param_adsr2_decay_curve(ParamValueT v) {
-//   ADSR2DecayCurveVal = (int8_t)v;
-// }
-
-// // ADSR3 enable flag (ID 126)
-// static void apply_param_adsr3_enabled(ParamValueT v) {
-//   // On the input controller we can treat non-zero as "enabled";
-//   // exact use depends on UI logic.
-//   // (ADSR3Enabled global is defined on other MCUs; here we may mirror that
-//   //  via local flags if needed.)
-//   // For now, no extra state beyond what the UI already tracks.
-//   (void)v;
-// }
-
-// // Function key (ID 127) – reserved / handled at higher UI level
-// static void apply_param_function_key(ParamValueT /*v*/) {
-//   // No-op here; actual behavior handled in higher-level UI code if needed.
-// }
-
-// // ---- Parameter table ----------------------------------------------------
-
-// static const ParamDescriptor paramTable[] = {
-//   { PARAM_VOICE_MODE,               apply_param_voice_mode               },
-//   { PARAM_UNISON_DETUNE,            apply_param_unison_detune            },
-//   { PARAM_ANALOG_DRIFT_AMOUNT,      apply_param_analog_drift_amount      },
-//   { PARAM_ANALOG_DRIFT_SPEED,       apply_param_analog_drift_speed       },
-//   { PARAM_ANALOG_DRIFT_SPREAD,      apply_param_analog_drift_spread      },
-
-//   { PARAM_PORTAMENTO_TIME,          apply_param_portamento_time          },
-//   { PARAM_PORTAMENTO_MODE,          apply_param_portamento_mode          },
-
-//   { PARAM_CALIBRATION_VALUE,        apply_param_calibration_value        },
-//   { PARAM_CALIBRATION_FLAG,         apply_param_calibration_flag         },
-//   { PARAM_MANUAL_CALIBRATION_STAGE, apply_param_manual_calibration_stage },
-//   { PARAM_MANUAL_CALIBRATION_OFFSET,apply_param_manual_calibration_offset},
-
-//   { PARAM_ADSR1_ATTACK_CURVE,       apply_param_adsr1_attack_curve       },
-//   { PARAM_ADSR1_DECAY_CURVE,        apply_param_adsr1_decay_curve        },
-//   { PARAM_ADSR2_ATTACK_CURVE,       apply_param_adsr2_attack_curve       },
-//   { PARAM_ADSR2_DECAY_CURVE,        apply_param_adsr2_decay_curve        },
-
-//   { PARAM_ADSR3_ENABLED,            apply_param_adsr3_enabled            },
-//   { PARAM_FUNCTION_KEY,             apply_param_function_key             },
-// };
-
-// static const size_t paramTableSize =
-//   sizeof(paramTable) / sizeof(paramTable[0]);
-
-// // Public entry point: can be called from Serial/MIDI/UI code
-// // if this MCU ever needs to react to incoming parameters.
-// inline void update_parameters(uint16_t rawId, ParamValueT value) {
-//   param_router_apply<ParamValueT>(
-//     paramTable,
-//     paramTableSize,
-//     rawId,
-//     value
-//   );
-// }
+    default:
+      break;
+  }
+}*/
