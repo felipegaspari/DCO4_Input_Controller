@@ -20,7 +20,11 @@ uint16_t RESONANCE;
 uint16_t CUTOFF = 1024;
 int16_t VCALevel = 0;
 
+#include <stdint.h>
+#include "params_def.h"
 #include "params.h"
+#include "param_router.h"
+
 #include "auxiliary.h"
 
 #include "Timers_millis.h"
@@ -70,6 +74,8 @@ void setup1() {
   init_LED_control();
 
   initFS();
+
+
 
   pinMode(PIN_LED_PWM, OUTPUT);
   analogWriteFreq(200000);
@@ -152,9 +158,13 @@ void loop() {
 #ifdef ENABLE_SERIAL
   //drawTM(tiempodeejecucion);
   if (timer200msFlag) {
+
+  // One-shot preset bank dump at boot for debugging. Comment out when done.
+  dumpPresetBankToSerial();
+
     Serial.print("|");
   }
-  if (1 == 1) {
+  if (1 == 2) {
   //if (timer99microsFlag) {58
   //if (timer200msFlag) {
     // if (tiempodeejecuciontotal > 100 ) {

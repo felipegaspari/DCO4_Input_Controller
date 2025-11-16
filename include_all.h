@@ -5,6 +5,9 @@
 #include "Arduino.h"
 //#include <Adafruit_TinyUSB.h>
 
+// Shared parameter ID definitions reused across all MCUs.
+#include "params_def.h"
+
 #include "params.h"
 //#include "auxiliary.h"
 

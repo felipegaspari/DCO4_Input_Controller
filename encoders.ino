@@ -86,7 +86,7 @@ void read_encoders() {
           portamentoTime = constrain(portamentoTime, 0, 255);
         }
         //serial_send_portamentoFlag = true;
-        serial_send_param_change_byte(18, (uint8_t)portamentoTime);
+        serial_send_param_change_byte(ParamId::PARAM_PORTAMENTO_TIME, (uint8_t)portamentoTime);
         break;
 
       case ACTION_LFO1_to_DCO:
@@ -98,7 +98,7 @@ void read_encoders() {
           }
         LFO1toDCO = constrain(LFO1toDCO, 0, 511);
         }
-        serial_send_param_change(40, (uint16_t)LFO1toDCO);
+        serial_send_param_change(ParamId::PARAM_LFO1_TO_DCO, (uint16_t)LFO1toDCO);
 
         //serial_send_LFO1toDCOFlag = true;  //DCO FM / LFO
         break;
@@ -112,7 +112,7 @@ void read_encoders() {
           }
           VCFKeytrack = constrain(VCFKeytrack, -256, 255);
         }
-        serial_send_param_change(19, (uint16_t)VCFKeytrack);
+        serial_send_param_change(ParamId::PARAM_VCF_KEYTRACK, (uint16_t)VCFKeytrack);
         break;
 
       case ACTION_ADSR3_to_DETUNE1:
@@ -126,7 +126,7 @@ void read_encoders() {
           //formula_update(10);
           //serialSendADSR3toDCOFlag = true;
         }
-        serial_send_param_change(47, (uint16_t)ADSR3toDETUNE1);
+        serial_send_param_change(ParamId::PARAM_ADSR3_TO_DETUNE1, (uint16_t)ADSR3toDETUNE1);
         break;
 
       case ACTION_velocity_to_VCF:
@@ -138,7 +138,7 @@ void read_encoders() {
           }
           velocityToVCF = constrain(velocityToVCF, 0, 20);
         }
-        serial_send_param_change_byte(20, (uint8_t)velocityToVCF);
+        serial_send_param_change_byte(ParamId::PARAM_VELOCITY_TO_VCF, (uint8_t)velocityToVCF);
         break;
 
       case ACTION_velocity_to_VCA:
@@ -150,7 +150,7 @@ void read_encoders() {
           }
           velocityToVCA = constrain(velocityToVCA, 0, 20);
         }
-        serial_send_param_change_byte(21, (uint8_t)velocityToVCA);
+        serial_send_param_change_byte(ParamId::PARAM_VELOCITY_TO_VCA, (uint8_t)velocityToVCA);
         break;
 
       case ACTION_octave:
@@ -162,7 +162,7 @@ void read_encoders() {
           }
           OSC1Interval = constrain(OSC1Interval, 0, 72);
         }
-        serial_send_param_change_byte(13, (uint8_t)OSC1Interval);  //Octave
+        serial_send_param_change_byte(ParamId::PARAM_OSC1_INTERVAL, (uint8_t)OSC1Interval);  // Octave
         //serial_send_OSC1IntervalFlag = true;
         break;
 
@@ -175,7 +175,7 @@ void read_encoders() {
           }
           SQR1Level = constrain(SQR1Level, 0, 128);
         }
-        serial_send_param_change_byte(22, (uint8_t)SQR1Level);
+        serial_send_param_change_byte(ParamId::PARAM_SQR1_LEVEL, (uint8_t)SQR1Level);
         break;
 
       case ACTION_SQR2_level:
@@ -187,7 +187,7 @@ void read_encoders() {
           }
           SQR2Level = constrain(SQR2Level, 0, 128);
         }
-        serial_send_param_change_byte(23, (uint8_t)SQR2Level);
+        serial_send_param_change_byte(ParamId::PARAM_SQR2_LEVEL, (uint8_t)SQR2Level);
         break;
 
       case ACTION_SUB_level:
@@ -199,7 +199,7 @@ void read_encoders() {
           }
           SubLevel = constrain(SubLevel, 0, 128);
         }
-        serial_send_param_change_byte(24, (uint8_t)SubLevel);
+        serial_send_param_change_byte(ParamId::PARAM_SUB_LEVEL, (uint8_t)SubLevel);
         break;
 
       case ACTION_OSC2_interval:
@@ -211,7 +211,7 @@ void read_encoders() {
           }
           OSC2Interval = constrain(OSC2Interval, 0, 48);
         }
-        serial_send_param_change_byte(14, (uint8_t)OSC2Interval);
+        serial_send_param_change_byte(ParamId::PARAM_OSC2_INTERVAL, (uint8_t)OSC2Interval);
         //serial_send_OSC2IntervalFlag = true;
         break;
 
@@ -224,7 +224,7 @@ void read_encoders() {
           }
           OSC2Detune = constrain(OSC2Detune, 0, 512);
         }
-        serial_send_param_change(15, (uint16_t)OSC2Detune);
+        serial_send_param_change(ParamId::PARAM_OSC2_DETUNE_VAL, (uint16_t)OSC2Detune);
         break;
 
       case ACTION_LFO2_to_OSC2:
@@ -236,7 +236,7 @@ void read_encoders() {
           }
           LFO2toOSC2DETUNE = constrain(LFO2toOSC2DETUNE, 0, 255);
         }
-        serial_send_param_change_byte(16, (uint8_t)LFO2toOSC2DETUNE);
+        serial_send_param_change_byte(ParamId::PARAM_LFO2_TO_DETUNE2, (uint8_t)LFO2toOSC2DETUNE);
         break;
 
       case ACTION_osc_sync_mode:
@@ -249,7 +249,7 @@ void read_encoders() {
           oscSyncMode = constrain(oscSyncMode, 0, 3);
         }
         serial_send_oscSyncModeFlag = true;
-        serial_send_param_change_byte(17, (uint8_t)oscSyncMode);
+        serial_send_param_change_byte(ParamId::PARAM_OSC_SYNC_MODE, (uint8_t)oscSyncMode);
         break;
 
       case ACTION_LFO1_speed:
@@ -261,7 +261,7 @@ void read_encoders() {
           }
           LFO1Speed = constrain(LFO1Speed, 0, 4095);
         }
-        serial_send_param_change(41, (uint16_t)LFO1Speed);
+        serial_send_param_change(ParamId::PARAM_LFO1_SPEED, (uint16_t)LFO1Speed);
         //serial_send_LFO1SpeedFlag = true;  // FM / DCO LFO
         break;
 
@@ -274,7 +274,7 @@ void read_encoders() {
           }
           LFO2Speed = constrain(LFO2Speed, 0, 4095);
         }
-        serial_send_param_change(42, (uint16_t)LFO2Speed);
+        serial_send_param_change(ParamId::PARAM_LFO2_SPEED, (uint16_t)LFO2Speed);
         break;
 
       case ACTION_VCA_level:
@@ -286,7 +286,7 @@ void read_encoders() {
           }
           VCALevel = constrain(VCALevel, 0, 128);
         }
-        serial_send_param_change_byte(43, (uint8_t)VCALevel);
+        serial_send_param_change_byte(ParamId::PARAM_VCA_LEVEL, (uint8_t)VCALevel);
         break;
 
       case ACTION_LFO1_to_VCA:
@@ -298,7 +298,7 @@ void read_encoders() {
           }
           LFO1toVCA = constrain(LFO1toVCA, 0, 1023);
         }
-        serial_send_param_change(44, (uint16_t)LFO1toVCA);
+        serial_send_param_change(ParamId::PARAM_LFO1_TO_VCA, (uint16_t)LFO1toVCA);
         break;
 
       case ACTION_LFO2_to_PWM:
@@ -310,7 +310,7 @@ void read_encoders() {
           }
           LFO2toPWM = constrain(LFO2toPWM, 0, 511);
         }
-        serial_send_param_change(45, (uint16_t)LFO2toPWM);
+        serial_send_param_change(ParamId::PARAM_LFO2_TO_PW, (uint16_t)LFO2toPWM);
         break;
 
       case ACTION_ADSR3_to_PWM:
@@ -322,7 +322,7 @@ void read_encoders() {
           }
           ADSR3toPWM = constrain(ADSR3toPWM, -512, 511);
         }
-        serial_send_param_change(46, (uint16_t)ADSR3toPWM + 512);
+        serial_send_param_change(ParamId::PARAM_ADSR3_TO_PWM, (uint16_t)ADSR3toPWM + 512);
         break;
 
       case ACTION_ADSR_CURVE_ATTACK:
@@ -337,10 +337,10 @@ void read_encoders() {
           }
           if (ADSR1CurveSelect == true) {
             ADSR1AttackCurveVal = constrain(ADSR1AttackCurveVal + a, 0, 7);
-            serial_send_param_change_byte(48, (uint8_t)ADSR1AttackCurveVal);
+            serial_send_param_change_byte(ParamId::PARAM_ADSR1_ATTACK_CURVE, (uint8_t)ADSR1AttackCurveVal);
           } else if (ADSR2CurveSelect == true) {
             ADSR2AttackCurveVal = constrain(ADSR2AttackCurveVal + a, 0, 7);
-            serial_send_param_change_byte(50, (uint8_t)ADSR2AttackCurveVal);
+            serial_send_param_change_byte(ParamId::PARAM_ADSR2_ATTACK_CURVE, (uint8_t)ADSR2AttackCurveVal);
           }
           break;
         }
@@ -356,10 +356,10 @@ void read_encoders() {
           }
           if (ADSR1CurveSelect == true) {
             ADSR1DecayCurveVal = constrain(ADSR1DecayCurveVal + a, 0, 7);
-            serial_send_param_change_byte(49, (uint8_t)ADSR1DecayCurveVal);
+            serial_send_param_change_byte(ParamId::PARAM_ADSR1_DECAY_CURVE, (uint8_t)ADSR1DecayCurveVal);
           } else if (ADSR2CurveSelect == true) {
             ADSR2DecayCurveVal = constrain(ADSR2DecayCurveVal + a, 0, 7);
-            serial_send_param_change_byte(51, (uint8_t)ADSR2DecayCurveVal);
+            serial_send_param_change_byte(ParamId::PARAM_ADSR2_DECAY_CURVE, (uint8_t)ADSR2DecayCurveVal);
           }
           break;
         }
@@ -372,7 +372,7 @@ void read_encoders() {
           }
           unisonDetune = constrain(unisonDetune, 0, 127);
         }
-        serial_send_param_change_byte(27, (uint8_t)unisonDetune);
+        serial_send_param_change_byte(ParamId::PARAM_UNISON_DETUNE, (uint8_t)unisonDetune);
         break;
 
       case ACTION_ANALOG_DRIFT:
@@ -384,7 +384,7 @@ void read_encoders() {
           }
           analogDrift = constrain(analogDrift, 0, 127);
         }
-        serial_send_param_change_byte(28, (uint8_t)analogDrift);
+        serial_send_param_change_byte(ParamId::PARAM_ANALOG_DRIFT_AMOUNT, (uint8_t)analogDrift);
         break;
 
       case ACTION_ANALOG_DRIFT_SPEED:
@@ -396,7 +396,7 @@ void read_encoders() {
           }
           analogDriftSpeed = constrain(analogDriftSpeed, 1, 255);
         }
-        serial_send_param_change_byte(29, (uint8_t)analogDriftSpeed);
+        serial_send_param_change_byte(ParamId::PARAM_ANALOG_DRIFT_SPEED, (uint8_t)analogDriftSpeed);
         break;
 
       case ACTION_ANALOG_DRIFT_SPREAD:
@@ -408,7 +408,7 @@ void read_encoders() {
           }
           analogDriftSpread = constrain(analogDriftSpread, 1, 127);
         }
-        serial_send_param_change_byte(30, (uint8_t)analogDriftSpread);
+        serial_send_param_change_byte(ParamId::PARAM_ANALOG_DRIFT_SPREAD, (uint8_t)analogDriftSpread);
         break;
 
       case ACTION_select_preset:
@@ -465,8 +465,8 @@ void read_encoders() {
           }
           manualCalibrationStage = constrain(manualCalibrationStage, 0, 15);
           uint8_t index = (uint8_t)manualCalibrationStage / 2;
-          serial_send_param_change_byte(152, (uint8_t)manualCalibrationStage);
-          serial_send_param_change_byte(153, (uint8_t)manualCalibrationInitAmpCompOffset[index]);
+          serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_STAGE, (uint8_t)manualCalibrationStage);
+          serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_OFFSET, (uint8_t)manualCalibrationInitAmpCompOffset[index]);
           break;
         }
       case ACTION_CALIBRATION_OFFSET:
@@ -478,7 +478,7 @@ void read_encoders() {
             manualCalibrationInitAmpCompOffset[index] = manualCalibrationInitAmpCompOffset[index] - 1;
           }
           manualCalibrationInitAmpCompOffset[index] = constrain(manualCalibrationInitAmpCompOffset[index], -15, 15);
-          serial_send_param_change_byte(153, (uint8_t)manualCalibrationInitAmpCompOffset[index]);
+          serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_OFFSET, (uint8_t)manualCalibrationInitAmpCompOffset[index]);
         }
         break;
 
@@ -489,7 +489,7 @@ void read_encoders() {
           menuPos = menuPos - 1;
         }
         menuPos = constrain(menuPos, 0, menuPosMax);
-        serial_send_param_change_byte(190, (uint8_t)menuPos);  // menu position
+        serial_send_param_change_byte(ParamId::PARAM_UI_MENU_POSITION, (uint8_t)menuPos);  // menu position
         // switch (currentControlMode) {
         //   case CALIBRATION_MENU:
         // break;

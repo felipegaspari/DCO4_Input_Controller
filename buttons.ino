@@ -86,16 +86,14 @@ void read_encoder_buttons() {
             currentControlMode = CALIBRATION_MENU;
             currentButtonAction = BTN_ACTION_NONE;
             manualCalibration = false;
-            serial_send_param_change_byte(151, manualCalibration);
-            //serialSendParamByteToScreen(199, 0);
+            serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_FLAG, manualCalibration);
 
             break;
           case BACK:
             currentControlMode = CALIBRATION_MENU;
             currentButtonAction = BTN_ACTION_NONE;
             manualCalibration = false;
-            serial_send_param_change_byte(151, manualCalibration);
-            //serialSendParamByteToScreen(199, 0);
+            serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_FLAG, manualCalibration);
             break;
           case SELECT:
             currentButtonAction = BTN_ACTION_NONE;
@@ -104,7 +102,7 @@ void read_encoder_buttons() {
             currentControlMode = NORMAL;
             currentButtonAction = BTN_ACTION_NONE;
             manualCalibration = false;
-            serial_send_param_change_byte(151, manualCalibration);
+            serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_FLAG, manualCalibration);
             break;
         }
         break;
@@ -114,17 +112,17 @@ void read_encoder_buttons() {
           case EXIT:
             currentControlMode = NORMAL;
             currentButtonAction = BTN_ACTION_NONE;
-            serial_send_param_change_byte(199, 0);
+            serial_send_param_change_byte(ParamId::PARAM_UI_CALIBRATION_DISMISS, 0);
             break;
           case BACK:
             currentControlMode = NORMAL;
             currentButtonAction = BTN_ACTION_NONE;
-            serial_send_param_change_byte(199, 0);
+            serial_send_param_change_byte(ParamId::PARAM_UI_CALIBRATION_DISMISS, 0);
             break;
           case SELECT:
             switch (menuPos) {
               case 0:
-                serial_send_param_change_byte(150, 1);
+                serial_send_param_change_byte(ParamId::PARAM_CALIBRATION_FLAG, 1);
                 break;
               case 1:
                 break;
@@ -215,35 +213,35 @@ void read_encoder_buttons() {
         sawStatus = !sawStatus;
         //digitalWrite(PIN_SAW1, sawStatus);
 
-        serial_send_param_change(1, sawStatus);
+        serial_send_param_change(ParamId::PARAM_SAW_STATUS, sawStatus);
         set_LED_Status(0, sawStatus);
         break;
       case TG_SAW2:
         saw2Status = !saw2Status;
         //digitalWrite(PIN_SAW2, saw2Status);
-        serial_send_param_change_byte(2, saw2Status);
+        serial_send_param_change_byte(ParamId::PARAM_SAW2_STATUS, saw2Status);
         set_LED_Status(3, saw2Status);
         break;
       case TG_TRI:
         triStatus = !triStatus;
         //digitalWrite(PIN_TRI, triStatus);
-        serial_send_param_change_byte(3, triStatus);
+        serial_send_param_change_byte(ParamId::PARAM_TRI_STATUS, triStatus);
         set_LED_Status(2, triStatus);
         break;
       case TG_SIN:
         sineStatus = !sineStatus;
         //digitalWrite(PIN_SIN, sineStatus);
-        serial_send_param_change_byte(4, sineStatus);
+        serial_send_param_change_byte(ParamId::PARAM_SINE_STATUS, sineStatus);
         //set_LED_Status();
         break;
       case TG_SQR1:
         sqr1Status = !sqr1Status;
-        serial_send_param_change_byte(5, sqr1Status);
+        serial_send_param_change_byte(ParamId::PARAM_SQR1_STATUS, sqr1Status);
         set_LED_Status(1, sqr1Status);
         break;
       case TG_SQR2:
         sqr2Status = !sqr2Status;
-        serial_send_param_change_byte(6, sqr2Status);
+        serial_send_param_change_byte(ParamId::PARAM_SQR2_STATUS, sqr2Status);
         set_LED_Status(4, sqr2Status);
         break;
 
@@ -251,30 +249,30 @@ void read_encoder_buttons() {
         if (buttonActionIsSelected) {
           RESONANCEAmpCompensation = !RESONANCEAmpCompensation;
         }
-        serial_send_param_change_byte(7, RESONANCEAmpCompensation);
+        serial_send_param_change_byte(ParamId::PARAM_RESONANCE_COMPENSATION, RESONANCEAmpCompensation);
         break;
 
       case TG_ADSR1_RESTART:
         if (ADSR1CurveSelect == true) {
           ADSR1CurveSelect = false;
-          serial_send_param_change_byte(48, -1);
+          serial_send_param_change_byte(ParamId::PARAM_ADSR1_ATTACK_CURVE, -1);
         } else {
           if (buttonActionIsSelected) {
             VCAADSRRestart = !VCAADSRRestart;
           }
-          serial_send_param_change_byte(8, VCAADSRRestart);
+          serial_send_param_change_byte(ParamId::PARAM_VCA_ADSR_RESTART, VCAADSRRestart);
         }
         break;
 
       case TG_ADSR2_RESTART:  //
         if (ADSR2CurveSelect == true) {
           ADSR2CurveSelect = false;
-          serial_send_param_change_byte(48, -1);
+          serial_send_param_change_byte(ParamId::PARAM_ADSR1_ATTACK_CURVE, -1);
         } else {
           if (buttonActionIsSelected) {
             VCFADSRRestart = !VCFADSRRestart;
           }
-          serial_send_param_change_byte(9, VCFADSRRestart);
+          serial_send_param_change_byte(ParamId::PARAM_VCF_ADSR_RESTART, VCFADSRRestart);
         }
         break;
 
@@ -289,7 +287,7 @@ void read_encoder_buttons() {
           }
         }
         serial_send_LFO1toDCOWaveChangeFlag = true;
-        serial_send_param_change_byte(11, LFO1Waveform);
+        serial_send_param_change_byte(ParamId::PARAM_LFO1_WAVEFORM, LFO1Waveform);
 
         break;
 
@@ -300,7 +298,7 @@ void read_encoder_buttons() {
             LFO2Waveform = 1;
           }
         }
-        serial_send_param_change_byte(12, LFO2Waveform);
+        serial_send_param_change_byte(ParamId::PARAM_LFO2_WAVEFORM, LFO2Waveform);
         break;
 
       case TG_VOICE_MODE:
@@ -310,22 +308,30 @@ void read_encoder_buttons() {
             voiceMode = 0;
           }
         }
-        serial_send_param_change_byte(26, voiceMode);
+        serial_send_param_change_byte(ParamId::PARAM_VOICE_MODE, voiceMode);
         break;
 
       case TG_FUNC:
         funcKeyOn = !funcKeyOn;
-        serial_send_param_change_byte(127, (uint8_t)funcKeyOn);
+        serial_send_param_change_byte(ParamId::PARAM_FUNCTION_KEY, (uint8_t)funcKeyOn);
         break;
 
       case WORK_WITH_PRESETS:
         break;
 
-      case PRESET_SAVE_SELECT_MODE:
-        if (presetSaveMode) {  // SAVE MODE EXIT
-          presetSaveMode = false;
-          presetSaveSelectMode = false;
-          charSelectVal = 0;
+      case PRESET_SAVE_SELECT_MODE: {
+        // Simplified and more explicit save state flow:
+        //  - Idle (no save flags)          -> enter preset select mode
+        //  - In preset select mode         -> cancel and return to normal
+        //  - In name-edit mode (saveMode)  -> cancel and return to normal
+        bool inSelect = presetSaveSelectMode && !presetSaveMode;
+        bool inName   = presetSaveSelectMode &&  presetSaveMode;
+
+        if (inName) {
+          // Cancel from name-edit: restore current preset name/number and exit.
+          presetSaveMode        = false;
+          presetSaveSelectMode  = false;
+          charSelectVal         = 0;
           for (int i = 0; i < 12; i++) {
             presetNameVal[i] = presetName[i];
           }
@@ -333,69 +339,83 @@ void read_encoder_buttons() {
           presetCharPos = 0;
           presetSelectVal = currentPreset;
 
-          serial_send_signal(2);
+          serial_send_signal(2);  // SAVE EXIT
           serial_send_preset_scroll(currentPreset, presetName);
+        } else if (inSelect) {
+          // Cancel from preset-select: exit back to normal.
+          presetSaveSelectMode = false;
+          presetSaveMode       = false;
+
+          serial_send_signal(2);  // SAVE EXIT
+          serial_send_preset_scroll(currentPreset, presetName);
+          presetSelectVal = currentPreset;
         } else {
-          presetSaveSelectMode = !presetSaveSelectMode;
-          if (presetSaveSelectMode) {
-            charSelectVal = 0;
-            serial_send_signal(3);  // ENTER SAVE SELECT MODE
-          } else {
-            serial_send_signal(2);  // SAVE SELECT MODE EXIT
-            serial_send_preset_scroll(currentPreset, presetName);
-            presetSelectVal = currentPreset;
-          }
+          // Idle -> enter preset-select mode.
+          presetSaveSelectMode = true;
+          presetSaveMode       = false;
+          charSelectVal        = 0;
+          serial_send_signal(3);  // ENTER SAVE SELECT MODE
         }
         break;
+      }
 
       case PRESET_SAVE_MODE:
 
         break;
 
-      case SAVE_PRESET:
-        if (presetSaveMode) {
-          presetSaveMode = false;
+      case SAVE_PRESET: {
+        // Two-step save:
+        //  - From preset-select: enter name-edit mode.
+        //  - From name-edit: commit preset and show "preset saved" on screen.
+        bool inSelect = presetSaveSelectMode && !presetSaveMode;
+        bool inName   = presetSaveSelectMode &&  presetSaveMode;
+
+        if (inName) {
+          // Final commit.
+          presetSaveMode       = false;
           presetSaveSelectMode = false;
 
-          //serial_send_signal(5);
-          //serial_send_preset_name_to_mainboard();
-          //serial_send_param_change_byte(142, presetSelectVal);
           writePreset(presetSelectVal);
-          //writePresetActions(presetSelectVal);
 
-          serial_send_signal(5);
+          // After saving, send updated preset name so the screen shows it.
+          serial_send_preset_scroll((uint8_t)presetSelectVal, presetNameVal);
+
+          // Notify screen: preset saved; screen logic will return to
+          // PresetScroll mode after showing the message.
+          serial_send_signal(5);   // PRESET SAVED (show message)
           presetCharPos = 0;
-        } else {
-          if (presetSaveSelectMode) {
-            serial_send_signal(4);
-            presetSaveMode = true;
-            for (int i = 0; i < 12; i++) {
-              presetNameVal[i] = presetName[i];
-            }
-
-            charSelectVal = presetNameVal[0];
-            presetCharPos = 0;
-            // serial_send_save_char_select(0);
-            // serial_send_preset_scroll(presetSelectVal, presetNameVal);
+        } else if (inSelect) {
+          // Move from preset-select into name-edit mode.
+          serial_send_signal(4);   // SAVE MODE - set preset name
+          presetSaveMode = true;
+          for (int i = 0; i < 12; i++) {
+            presetNameVal[i] = presetName[i];
           }
+
+          charSelectVal = presetNameVal[0];
+          presetCharPos = 0;
+          // serial_send_save_char_select(0);
+          // serial_send_preset_scroll(presetSelectVal, presetNameVal);
         }
+        // If idle, ignore SAVE_PRESET (same as before).
         break;
+      }
 
       case TG_MAN_FADERS:
         faderControlManual = !faderControlManual;
         faderRow1ControlManual = faderControlManual;
         faderRow2ControlManual = faderControlManual;
-        serial_send_param_change_byte(120, faderControlManual);
+        serial_send_param_change_byte(ParamId::PARAM_FADERS_CONTROL_MANUAL, faderControlManual);
         //set_LED_Status();
         break;
       case TG_MAN_FADER_ROW1:
         faderRow1ControlManual = !faderRow1ControlManual;
-        serial_send_param_change_byte(121, faderRow1ControlManual);
+        serial_send_param_change_byte(ParamId::PARAM_FADER_ROW1_CONTROL_MANUAL, faderRow1ControlManual);
         set_LED_Status(10, faderRow1ControlManual);
         break;
       case TG_MAN_FADER_ROW2:
         faderRow2ControlManual = !faderRow2ControlManual;
-        serial_send_param_change_byte(122, faderRow2ControlManual);
+        serial_send_param_change_byte(ParamId::PARAM_FADER_ROW2_CONTROL_MANUAL, faderRow2ControlManual);
         set_LED_Status(11, faderRow2ControlManual);
         break;
       case TG_MAN_POTS:
@@ -403,24 +423,24 @@ void read_encoder_buttons() {
         VCFPotsControlManual = potsControlManual;
         VCAPotsControlManual = potsControlManual;
         PWMPotsControlManual = potsControlManual;
-        serial_send_param_change_byte(129, potsControlManual);
+        serial_send_param_change_byte(ParamId::PARAM_POTS_CONTROL_MANUAL, potsControlManual);
         //set_LED_Status();
         break;
       case TG_MANUAL_VCF_POTS:
         VCFPotsControlManual = !VCFPotsControlManual;
-        serial_send_param_change_byte(123, VCFPotsControlManual);
+        serial_send_param_change_byte(ParamId::PARAM_VCF_POTS_CONTROL_MANUAL, VCFPotsControlManual);
         set_LED_Status(7, VCFPotsControlManual);
         break;
 
       case TG_MANUAL_VCA_POTS:
         VCAPotsControlManual = !VCAPotsControlManual;
-        serial_send_param_change_byte(128, VCAPotsControlManual);
+        serial_send_param_change_byte(ParamId::PARAM_VCA_POTS_CONTROL_MANUAL, VCAPotsControlManual);
         set_LED_Status(8, VCAPotsControlManual);
         break;
 
       case TG_MANUAL_PWM_POTS:
         PWMPotsControlManual = !PWMPotsControlManual;
-        serial_send_param_change_byte(124, PWMPotsControlManual);
+        serial_send_param_change_byte(ParamId::PARAM_PWM_POTS_CONTROL_MANUAL, PWMPotsControlManual);
         set_LED_Status(9, PWMPotsControlManual);
         break;
       case TG_MANUAL_ALL:
@@ -429,14 +449,14 @@ void read_encoder_buttons() {
         faderRow2ControlManual = allControlsManual;
         faderRow1ControlManual = allControlsManual;
         PWMPotsControlManual = allControlsManual;
-        serial_send_param_change_byte(125, allControlsManual);
+        serial_send_param_change_byte(ParamId::PARAM_ALL_CONTROLS_MANUAL, allControlsManual);
         //set_LED_Status();
         break;
 
       case TG_ENABLE_ADSR3:
         ADSR3Enabled = !ADSR3Enabled;
         faderRow2ControlManual = false;
-        serial_send_param_change_byte(126, (uint8_t)ADSR3Enabled);
+        serial_send_param_change_byte(ParamId::PARAM_ADSR3_ENABLED, (uint8_t)ADSR3Enabled);
         LED_Control_Mux.blinkPin(LEDPins[11], ADSR3Enabled);
         set_LED_Status(11, ADSR3Enabled);
         break;
@@ -448,21 +468,21 @@ void read_encoder_buttons() {
             syncMode = 0;
           }
         }
-        serial_send_param_change_byte(31, syncMode);
+        serial_send_param_change_byte(ParamId::PARAM_SYNC_MODE, syncMode);
         break;
 
       case ADSR1_CURVE_SEL:
         if (buttonActionIsSelected) {
           ADSR1CurveSelect = !ADSR1CurveSelect;
         }
-        serial_send_param_change_byte(48, -1);
+        serial_send_param_change_byte(ParamId::PARAM_ADSR1_ATTACK_CURVE, -1);
         break;
 
       case ADSR2_CURVE_SEL:
         if (buttonActionIsSelected) {
           ADSR2CurveSelect = !ADSR2CurveSelect;
         }
-        serial_send_param_change_byte(50, -1);
+        serial_send_param_change_byte(ParamId::PARAM_ADSR2_ATTACK_CURVE, -1);
         break;
 
       case SELECT_ENC_ACTION:
@@ -477,15 +497,15 @@ void read_encoder_buttons() {
           }
         }
         serialSendADSR3ToOscSelectFlag = true;
-        serial_send_param_change_byte(10, ADSR3ToOscSelect);
+        serial_send_param_change_byte(ParamId::PARAM_ADSR3_TO_OSC_SELECT, ADSR3ToOscSelect);
         break;
 
       case TG_CALIBRATION_MENU:
         menuPos = 0;
         menuPosMax = 3;
         currentControlMode = CALIBRATION_MENU;
-        serial_send_param_change_byte(200, 1);
-        serial_send_param_change_byte(190, (uint8_t)menuPos);
+        serial_send_param_change_byte(ParamId::PARAM_UI_CALIBRATION_MENU_MODE, 1);
+        serial_send_param_change_byte(ParamId::PARAM_UI_MENU_POSITION, (uint8_t)menuPos);
         break;
 
       case TG_MAN_CALIBRATION:
@@ -493,9 +513,9 @@ void read_encoder_buttons() {
         currentControlMode = MANUAL_CALIBRATION;
         manualCalibrationStage = 0;
         memset(manualCalibrationInitAmpCompOffset, 0, sizeof(manualCalibrationInitAmpCompOffset));
-        serial_send_param_change_byte(151, manualCalibration);
-        serial_send_param_change(152, (uint8_t)manualCalibrationStage);
-        serial_send_param_change(153, (uint8_t)manualCalibrationInitAmpCompOffset[manualCalibrationStage / 2]);
+        serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_FLAG, manualCalibration);
+        serial_send_param_change(ParamId::PARAM_MANUAL_CALIBRATION_STAGE, (uint8_t)manualCalibrationStage);
+        serial_send_param_change(ParamId::PARAM_MANUAL_CALIBRATION_OFFSET, (uint8_t)manualCalibrationInitAmpCompOffset[manualCalibrationStage / 2]);
         break;
 
       case BACK:

@@ -1,15 +1,52 @@
+#include "FS.h"
+
 void initFS() {
   LittleFS.begin();
 
   if (!LittleFS.exists("presetBank1")) {
     fileBank1 = LittleFS.open("presetBank1", "w+");
+    // Fresh file: initialise RAM bank and on-flash file to zeros.
+    memset(presetBank1Buffer, 0, flashBankSize);
+    memset(flashData,          0, flashPresetSize);
+    // Pre-allocate full bank region on flash so high-index presets
+    // can be written safely later.
+    for (uint16_t offset = 0; offset < flashBankSize; ) {
+      uint8_t zeros[64] = {0};
+      uint16_t chunk = (flashBankSize - offset) > sizeof(zeros)
+                       ? sizeof(zeros)
+                       : (flashBankSize - offset);
+      fileBank1.write(zeros, chunk);
+      offset += chunk;
+    }
+    fileBank1.flush();
+    fileBank1.seek(0);
   } else {
-    fileBank1 = LittleFS.open("presetBank1", "r");
+    fileBank1 = LittleFS.open("presetBank1", "r+");
+    // Ensure the underlying file is at least flashBankSize bytes long so
+    // we can write any preset index 0..NUM_PRESETS-1 safely.
+    uint32_t sz = fileBank1.size();
+    if (sz < flashBankSize) {
+      fileBank1.seek(sz);
+      for (uint32_t offset = sz; offset < flashBankSize; ) {
+        uint8_t zeros[64] = {0};
+        uint32_t chunk = (flashBankSize - offset) > sizeof(zeros)
+                         ? sizeof(zeros)
+                         : (flashBankSize - offset);
+        fileBank1.write(zeros, chunk);
+        offset += chunk;
+      }
+      fileBank1.flush();
+      fileBank1.seek(0);
+    } else {
+      fileBank1.seek(0);
+    }
   }
 
+  // Load full bank into RAM buffer.
   fileBank1.read(presetBank1Buffer, flashBankSize);
   fileBank1.close();
 
+  // Copy first preset slot into flashData for initial load.
   for (int i = 0; i < flashPresetSize; i++) {
     flashData[i] = presetBank1Buffer[i];
   }
@@ -18,6 +55,10 @@ void initFS() {
 }
 
 void load_preset_name(byte destinationPreset) {
+
+  if (destinationPreset >= NUM_PRESETS) {
+    return;
+  }
 
   uint16_t startByteN = destinationPreset * flashPresetSize;
 
@@ -36,6 +77,10 @@ void load_preset_name(byte destinationPreset) {
 }
 
 void loadPreset(uint16_t presetN) {
+
+  if (presetN >= NUM_PRESETS) {
+    return;
+  }
 
   byte unused_data;
   uint16_t unused_data_uint16_t;
@@ -75,7 +120,10 @@ void loadPreset(uint16_t presetN) {
   unused_data = bitRead(flashData[1], 6);
   unused_data = bitRead(flashData[1], 7);
 
-  unused_data = flashData[2];
+  // flashData[2] can carry a tiny per‑preset header / version.
+  // For older presets this will be 0.
+  uint8_t presetFormatVersion = flashData[2];
+  (void)presetFormatVersion;  // reserved for future use
   unused_data = flashData[3];
   unused_data = flashData[4];
   unused_data = flashData[5];
@@ -189,89 +237,91 @@ void loadPreset(uint16_t presetN) {
 
   delay(10);
 
-  serial_send_param_change_byte(124, 0, false);  // PWM control Manual off after loading
-  serial_send_param_change_byte(126, 0, false);  // ADSR3Enabled OFF
+  // PWM control Manual off after loading
+  serial_send_param_change_byte(ParamId::PARAM_PWM_POTS_CONTROL_MANUAL, 0, false);
+  // ADSR3Enabled OFF
+  serial_send_param_change_byte(ParamId::PARAM_ADSR3_ENABLED, 0, false);
 
-  serial_send_param_change_byte(1, (uint8_t)sawStatus, false);
-  serial_send_param_change_byte(2, (uint8_t)saw2Status, false);
-  serial_send_param_change_byte(3, (uint8_t)triStatus, false);
-  serial_send_param_change_byte(4, (uint8_t)sineStatus, false);
-  serial_send_param_change_byte(5, (uint8_t)sqr1Status, false);
-  serial_send_param_change_byte(6, (uint8_t)sqr2Status, false);
+  serial_send_param_change_byte(ParamId::PARAM_SAW_STATUS,  (uint8_t)sawStatus,  false);
+  serial_send_param_change_byte(ParamId::PARAM_SAW2_STATUS, (uint8_t)saw2Status, false);
+  serial_send_param_change_byte(ParamId::PARAM_TRI_STATUS,  (uint8_t)triStatus,  false);
+  serial_send_param_change_byte(ParamId::PARAM_SINE_STATUS, (uint8_t)sineStatus, false);
+  serial_send_param_change_byte(ParamId::PARAM_SQR1_STATUS, (uint8_t)sqr1Status, false);
+  serial_send_param_change_byte(ParamId::PARAM_SQR2_STATUS, (uint8_t)sqr2Status, false);
 
   set_LED_Status(16, 0);
 
   delay(2);
 
-  serial_send_param_change_byte(7, (uint8_t)RESONANCEAmpCompensation, false);
-  serial_send_param_change_byte(8, (uint8_t)VCAADSRRestart, false);
-  serial_send_param_change_byte(9, (uint8_t)VCFADSRRestart, false);
-  serial_send_param_change_byte(10, (uint8_t)ADSR3ToOscSelect, false);
+  serial_send_param_change_byte(ParamId::PARAM_RESONANCE_COMPENSATION, (uint8_t)RESONANCEAmpCompensation, false);
+  serial_send_param_change_byte(ParamId::PARAM_VCA_ADSR_RESTART,        (uint8_t)VCAADSRRestart,          false);
+  serial_send_param_change_byte(ParamId::PARAM_VCF_ADSR_RESTART,        (uint8_t)VCFADSRRestart,          false);
+  serial_send_param_change_byte(ParamId::PARAM_ADSR3_TO_OSC_SELECT,     (uint8_t)ADSR3ToOscSelect,        false);
 
   // LFO1Waveform
-  serial_send_param_change_byte(11, (uint8_t)LFO1Waveform, false);
+  serial_send_param_change_byte(ParamId::PARAM_LFO1_WAVEFORM, (uint8_t)LFO1Waveform, false);
   // LFO2Waveform
-  serial_send_param_change_byte(12, (uint8_t)LFO2Waveform, false);
+  serial_send_param_change_byte(ParamId::PARAM_LFO2_WAVEFORM, (uint8_t)LFO2Waveform, false);
   
 delay(2);
 
-  serial_send_param_change_byte(13, (uint8_t)OSC1Interval, false);
-  serial_send_param_change_byte(14, (uint8_t)OSC2Interval, false);
+  serial_send_param_change_byte(ParamId::PARAM_OSC1_INTERVAL,   (uint8_t)OSC1Interval,   false);
+  serial_send_param_change_byte(ParamId::PARAM_OSC2_INTERVAL,   (uint8_t)OSC2Interval,   false);
 
-  serial_send_param_change_byte(17, (uint8_t)oscSyncMode, false);
+  serial_send_param_change_byte(ParamId::PARAM_OSC_SYNC_MODE,   (uint8_t)oscSyncMode,    false);
 
-  serial_send_param_change_byte(18, (uint8_t)portamentoTime, false);
+  serial_send_param_change_byte(ParamId::PARAM_PORTAMENTO_TIME, (uint8_t)portamentoTime, false);
 
-  serial_send_param_change_byte(26, (uint8_t)voiceMode, false);
+  serial_send_param_change_byte(ParamId::PARAM_VOICE_MODE,      (uint8_t)voiceMode,      false);
 
 delay(2);
 
-  serial_send_param_change_byte(10, (uint8_t)ADSR3ToOscSelect, false);
+  serial_send_param_change_byte(ParamId::PARAM_ADSR3_TO_OSC_SELECT, (uint8_t)ADSR3ToOscSelect, false);
 
-  serial_send_param_change_byte(20, (uint8_t)velocityToVCF, false);
-  serial_send_param_change_byte(21, (uint8_t)velocityToVCA, false);
+  serial_send_param_change_byte(ParamId::PARAM_VELOCITY_TO_VCF,     (uint8_t)velocityToVCF,    false);
+  serial_send_param_change_byte(ParamId::PARAM_VELOCITY_TO_VCA,     (uint8_t)velocityToVCA,    false);
 
-  serial_send_param_change_byte(22, (uint8_t)SQR1Level, true);
-  serial_send_param_change_byte(23, (uint8_t)SQR2Level, true);
-  serial_send_param_change_byte(24, (uint8_t)SubLevel, true);
+  serial_send_param_change_byte(ParamId::PARAM_SQR1_LEVEL,          (uint8_t)SQR1Level,        true);
+  serial_send_param_change_byte(ParamId::PARAM_SQR2_LEVEL,          (uint8_t)SQR2Level,        true);
+  serial_send_param_change_byte(ParamId::PARAM_SUB_LEVEL,           (uint8_t)SubLevel,         true);
 
-  serial_send_param_change_byte(27, (uint8_t)unisonDetune, false);  //  unisonDetune
-  serial_send_param_change_byte(28, (uint8_t)analogDrift, false);   //  analogDrift
-  serial_send_param_change_byte(29, (uint8_t)analogDriftSpeed, false);   //  analogDriftSpeed
-  serial_send_param_change_byte(30, (uint8_t)analogDriftSpread, false);   //  analogDriftSpread
+  serial_send_param_change_byte(ParamId::PARAM_UNISON_DETUNE,       (uint8_t)unisonDetune,     false);
+  serial_send_param_change_byte(ParamId::PARAM_ANALOG_DRIFT_AMOUNT, (uint8_t)analogDrift,      false);
+  serial_send_param_change_byte(ParamId::PARAM_ANALOG_DRIFT_SPEED,  (uint8_t)analogDriftSpeed, false);
+  serial_send_param_change_byte(ParamId::PARAM_ANALOG_DRIFT_SPREAD, (uint8_t)analogDriftSpread,false);
   
-  serial_send_param_change_byte(31, (uint8_t)syncMode, false);
+  serial_send_param_change_byte(ParamId::PARAM_SYNC_MODE,           (uint8_t)syncMode,         false);
 
 delay(2);
 
-  serial_send_param_change(40, (uint16_t)LFO1toDCO, false);  // LFO1toDCO
+  serial_send_param_change(ParamId::PARAM_LFO1_TO_DCO, (uint16_t)LFO1toDCO,  false);
 
-  serial_send_param_change(41, (uint16_t)LFO1Speed, false);  // LFO1Speed
+  serial_send_param_change(ParamId::PARAM_LFO1_SPEED,  (uint16_t)LFO1Speed,  false);
 
-  serial_send_param_change(42, (uint16_t)LFO2Speed, false);  // LFO2Speed
+  serial_send_param_change(ParamId::PARAM_LFO2_SPEED,  (uint16_t)LFO2Speed,  false);
 
-  serial_send_param_change(43, (uint16_t)VCALevel, false);
+  serial_send_param_change(ParamId::PARAM_VCA_LEVEL,   (uint16_t)VCALevel,   false);
 
-  serial_send_param_change(44, (uint16_t)LFO1toVCA, false);
+  serial_send_param_change(ParamId::PARAM_LFO1_TO_VCA, (uint16_t)LFO1toVCA,  false);
 
-  serial_send_param_change(45, (uint16_t)LFO2toPWM, false);  // LFO2toPWM
+  serial_send_param_change(ParamId::PARAM_LFO2_TO_PW,  (uint16_t)LFO2toPWM,  false);
 delay(2);
-  serial_send_param_change(46, (uint16_t)ADSR3toPWM + 512, false);  // ADSR3toPWM
+  serial_send_param_change(ParamId::PARAM_ADSR3_TO_PWM,     (uint16_t)ADSR3toPWM + 512, false);
 
-  serial_send_param_change(47, (uint16_t)ADSR3toDETUNE1, false);  // ADSR3toDETUNE1
+  serial_send_param_change(ParamId::PARAM_ADSR3_TO_DETUNE1, (uint16_t)ADSR3toDETUNE1,   false);
 
-  serial_send_param_change(15, (uint16_t)OSC2Detune, false);  // OSC2Detune
+  serial_send_param_change(ParamId::PARAM_OSC2_DETUNE_VAL,  (uint16_t)OSC2Detune,       false);
 
-  serial_send_param_change(16, (uint16_t)LFO2toOSC2DETUNE, false);  // LFO2toOSC2DETUNE
+  serial_send_param_change(ParamId::PARAM_LFO2_TO_DETUNE2,  (uint16_t)LFO2toOSC2DETUNE, false);
 
   serial_send_manual_controls(true);  
   
   delay(2);
 
-    serial_send_param_change_byte(48, (uint8_t)ADSR1AttackCurveVal, false);
-  serial_send_param_change_byte(49, (uint8_t)ADSR1DecayCurveVal, false);
-  serial_send_param_change_byte(50, (uint8_t)ADSR2AttackCurveVal, false);
-  serial_send_param_change_byte(51, (uint8_t)ADSR2DecayCurveVal, false);
+  serial_send_param_change_byte(ParamId::PARAM_ADSR1_ATTACK_CURVE, (uint8_t)ADSR1AttackCurveVal, false);
+  serial_send_param_change_byte(ParamId::PARAM_ADSR1_DECAY_CURVE,  (uint8_t)ADSR1DecayCurveVal,  false);
+  serial_send_param_change_byte(ParamId::PARAM_ADSR2_ATTACK_CURVE, (uint8_t)ADSR2AttackCurveVal, false);
+  serial_send_param_change_byte(ParamId::PARAM_ADSR2_DECAY_CURVE,  (uint8_t)ADSR2DecayCurveVal,  false);
 
   delay(100);
   // includes:
@@ -315,7 +365,48 @@ delay(2);
   serial_send_signal(1);  // Screen silence ENDs
 }
 
+// Debug helper: dump full preset bank to USB Serial (if enabled).
+// Prints, for each preset index:
+//   - preset number
+//   - 12-char name (offset 119..130)
+//   - first 16 data bytes in hex
+void dumpPresetBankToSerial() {
+#ifdef ENABLE_SERIAL
+  Serial.println(F("=== Preset bank dump ==="));
+  for (uint16_t p = 0; p < NUM_PRESETS; ++p) {
+    uint32_t startByteN = (uint32_t)p * flashPresetSize;
+    if (startByteN + flashPresetSize > flashBankSize) {
+      break;
+    }
+
+    Serial.print(F("Preset "));
+    Serial.print(p);
+    Serial.print(F("  name=\""));
+
+    uint32_t nameOffset = startByteN + 119;
+    for (uint8_t i = 0; i < 12; ++i) {
+      char c = (char)presetBank1Buffer[nameOffset + i];
+      if (c < 32) c = ' ';
+      Serial.print(c);
+    }
+    Serial.print(F("\"  data[0..15]="));
+
+    for (uint8_t i = 0; i < 16; ++i) {
+      uint8_t b = presetBank1Buffer[startByteN + i];
+      if (b < 16) Serial.print('0');
+      Serial.print(b, HEX);
+      Serial.print(' ');
+    }
+    Serial.println();
+  }
+  Serial.println(F("=== End of preset bank dump ==="));
+#endif
+}
+
 void get_preset_name(byte presetN, byte (&myarray)[12]) {
+  if (presetN >= NUM_PRESETS) {
+    return;
+  }
   uint16_t startByteN = presetN * flashPresetSize;
   for (int i = 0; i < 12; i++) {
     myarray[i] = presetBank1Buffer[startByteN + 119 + i];
@@ -323,6 +414,10 @@ void get_preset_name(byte presetN, byte (&myarray)[12]) {
 }
 
 void writePreset(uint16_t presetN) {
+
+  if (presetN >= NUM_PRESETS) {
+    return;
+  }
 
   faderRow1ControlManual = false;
   faderRow2ControlManual = false;
@@ -332,7 +427,6 @@ void writePreset(uint16_t presetN) {
   ADSR3Enabled = false;
 
   uint16_t startByteN = presetN * flashPresetSize;
-  byte *b;
 
   // bits
   bitWrite(flashData[0], 0, sawStatus);
@@ -502,12 +596,7 @@ void writePreset(uint16_t presetN) {
   fileBank1 = LittleFS.open("presetBank1", "r+");
   fileBank1.seek(startByteN);
   fileBank1.write(flashData, flashPresetSize);
-  fileBank1.read(presetBank1Buffer, flashBankSize);
   fileBank1.close();
-
-  for (int i = 0; i < flashPresetSize; i++) {
-    flashData[i] = presetBank1Buffer[i];
-  }
 
   presetSaveSelectMode = false;
   presetSaveMode = false;
@@ -515,12 +604,11 @@ void writePreset(uint16_t presetN) {
   currentPreset = presetN;
   presetSelectVal = currentPreset;
 
-  for (int i = 0; i > 12; i++) {
+  for (int i = 0; i < 12; i++) {
     presetName[i] = presetNameVal[i];
   }
   set_LED_Status(16, 0);
 
-  loadPreset(currentPreset);  // FIX AND REMOVE !!!!!!!!
 }
 
 void writePresetActions(uint16_t presetN) {

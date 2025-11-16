@@ -1,7 +1,7 @@
 #ifndef __SERIAL_H__
 #define __SERIAL_H__
 
-// #define ENABLE_SERIAL
+#define ENABLE_SERIAL
 #define ENABLE_SERIAL1
 #define ENABLE_SERIAL2
 
@@ -23,8 +23,18 @@ bool serialSendADSR3ControlValuesFlag = false;
 bool serialSendADSR3toDCOFlag = false;
 bool serialSendADSR3ToOscSelectFlag = false;
 
-void serial_send_param_change_byte(byte param, byte paramValue, bool sendToAll = true); 
-void serial_send_param_change(byte param, uint16_t paramValue, bool sendToAll = true); 
+void serial_send_param_change_byte(byte param, byte paramValue, bool sendToAll = true);
+void serial_send_param_change(byte param, uint16_t paramValue, bool sendToAll = true);
+
+// Convenience overloads to use the shared ParamId enum directly without
+// cluttering call sites with casts.
+inline void serial_send_param_change_byte(ParamId id, byte paramValue, bool sendToAll = true) {
+  serial_send_param_change_byte(static_cast<byte>(id), paramValue, sendToAll);
+}
+
+inline void serial_send_param_change(ParamId id, uint16_t paramValue, bool sendToAll = true) {
+  serial_send_param_change(static_cast<byte>(id), paramValue, sendToAll);
+}
 
 #endif
 

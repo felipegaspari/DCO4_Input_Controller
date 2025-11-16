@@ -1,51 +1,77 @@
 void serial_send_manual_controls(bool presetLoading) {
   if (faderRow1ControlManual || presetLoading) {
-    byte dataArray[8];
+    // Exponential-mapped values for DCO
+    byte dataArrayDCO[8];
+    uint16_t ADSR1_attack_serial  = linToExpLookup[ADSR1_attack];
+    uint16_t ADSR1_decay_serial   = linToExpLookup[ADSR1_decay];
+    uint16_t ADSR1_release_serial = linToExpLookup[ADSR1_release];
 
-uint16_t ADSR1_attack_serial = linToExpLookup[ADSR1_attack];
-uint16_t ADSR1_decay_serial = linToExpLookup[ADSR1_decay];
-uint16_t ADSR1_release_serial = linToExpLookup[ADSR1_release];
+    dataArrayDCO[0] = highByte(ADSR1_attack_serial);
+    dataArrayDCO[1] = lowByte(ADSR1_attack_serial);
+    dataArrayDCO[2] = highByte(ADSR1_decay_serial);
+    dataArrayDCO[3] = lowByte(ADSR1_decay_serial);
+    dataArrayDCO[4] = highByte(ADSR1_sustain);
+    dataArrayDCO[5] = lowByte(ADSR1_sustain);
+    dataArrayDCO[6] = highByte(ADSR1_release_serial);
+    dataArrayDCO[7] = lowByte(ADSR1_release_serial);
 
-    dataArray[0] = highByte(ADSR1_attack_serial);
-    dataArray[1] = lowByte(ADSR1_attack_serial);
-    dataArray[2] = highByte(ADSR1_decay_serial);
-    dataArray[3] = lowByte(ADSR1_decay_serial);
-    dataArray[4] = highByte(ADSR1_sustain);
-    dataArray[5] = lowByte(ADSR1_sustain);
-    dataArray[6] = highByte(ADSR1_release_serial);
-    dataArray[7] = lowByte(ADSR1_release_serial);
+    // Raw fader values for Screen (so UI bars reflect linear position)
+    byte dataArrayScreen[8];
+    dataArrayScreen[0] = highByte(ADSR1_attack);
+    dataArrayScreen[1] = lowByte(ADSR1_attack);
+    dataArrayScreen[2] = highByte(ADSR1_decay);
+    dataArrayScreen[3] = lowByte(ADSR1_decay);
+    dataArrayScreen[4] = highByte(ADSR1_sustain);
+    dataArrayScreen[5] = lowByte(ADSR1_sustain);
+    dataArrayScreen[6] = highByte(ADSR1_release);
+    dataArrayScreen[7] = lowByte(ADSR1_release);
 
+    // Send ADSR1 values to DCO and Screen
     Serial2.write((char *)"a");
-    Serial2.write(dataArray, 8);
+    Serial2.write(dataArrayDCO, 8);
+    Serial1.write((char *)"a");
+    Serial1.write(dataArrayScreen, 8);
   }
 
   if ((faderRow2ControlManual && !ADSR3Enabled)  || presetLoading) {
-    byte dataArray[8];
+    // Exponential-mapped values for DCO
+    byte dataArrayDCO[8];
+    uint16_t ADSR2_attack_serial  = linToExpLookup[ADSR2_attack];
+    uint16_t ADSR2_decay_serial   = linToExpLookup[ADSR2_decay];
+    uint16_t ADSR2_release_serial = linToExpLookup[ADSR2_release];
 
-uint16_t ADSR2_attack_serial = linToExpLookup[ADSR2_attack];
-uint16_t ADSR2_decay_serial = linToExpLookup[ADSR2_decay];
-uint16_t ADSR2_release_serial = linToExpLookup[ADSR2_release];
+    dataArrayDCO[0] = highByte(ADSR2_attack_serial);
+    dataArrayDCO[1] = lowByte(ADSR2_attack_serial);
+    dataArrayDCO[2] = highByte(ADSR2_decay_serial);
+    dataArrayDCO[3] = lowByte(ADSR2_decay_serial);
+    dataArrayDCO[4] = highByte(ADSR2_sustain);
+    dataArrayDCO[5] = lowByte(ADSR2_sustain);
+    dataArrayDCO[6] = highByte(ADSR2_release_serial);
+    dataArrayDCO[7] = lowByte(ADSR2_release_serial);
 
+    // Raw fader values for Screen
+    byte dataArrayScreen[8];
+    dataArrayScreen[0] = highByte(ADSR2_attack);
+    dataArrayScreen[1] = lowByte(ADSR2_attack);
+    dataArrayScreen[2] = highByte(ADSR2_decay);
+    dataArrayScreen[3] = lowByte(ADSR2_decay);
+    dataArrayScreen[4] = highByte(ADSR2_sustain);
+    dataArrayScreen[5] = lowByte(ADSR2_sustain);
+    dataArrayScreen[6] = highByte(ADSR2_release);
+    dataArrayScreen[7] = lowByte(ADSR2_release);
 
-    dataArray[0] = highByte(ADSR2_attack_serial);
-    dataArray[1] = lowByte(ADSR2_attack_serial);
-    dataArray[2] = highByte(ADSR2_decay_serial);
-    dataArray[3] = lowByte(ADSR2_decay_serial);
-    dataArray[4] = highByte(ADSR2_sustain);
-    dataArray[5] = lowByte(ADSR2_sustain);
-    dataArray[6] = highByte(ADSR2_release_serial);
-    dataArray[7] = lowByte(ADSR2_release_serial);
-
+    // Send ADSR2 values to DCO and Screen
     Serial2.write((char *)"b");
-    Serial2.write(dataArray, 8);
+    Serial2.write(dataArrayDCO, 8);
+    Serial1.write((char *)"b");
+    Serial1.write(dataArrayScreen, 8);
   } 
   if ((faderRow2ControlManual && ADSR3Enabled)  || presetLoading) {
     byte dataArray[8];
 
- uint16_t ADSR3_attack_serial = linToExpLookup[ADSR3_attack];
- uint16_t ADSR3_decay_serial = linToExpLookup[ADSR3_decay];
- uint16_t ADSR3_release_serial = linToExpLookup[ADSR3_release];
-
+    uint16_t ADSR3_attack_serial  = linToExpLookup[ADSR3_attack];
+    uint16_t ADSR3_decay_serial   = linToExpLookup[ADSR3_decay];
+    uint16_t ADSR3_release_serial = linToExpLookup[ADSR3_release];
 
     dataArray[0] = highByte(ADSR3_attack_serial);
     dataArray[1] = lowByte(ADSR3_attack_serial);
@@ -56,6 +82,8 @@ uint16_t ADSR2_release_serial = linToExpLookup[ADSR2_release];
     dataArray[6] = highByte(ADSR3_release_serial);
     dataArray[7] = lowByte(ADSR3_release_serial);
 
+    // Send ADSR3 manual values to DCO (Serial2) only.
+    // (Screen does not currently display ADSR3 via 'c' frames.)
     Serial2.write((char *)"c");
     Serial2.write(dataArray, 8);
   }
