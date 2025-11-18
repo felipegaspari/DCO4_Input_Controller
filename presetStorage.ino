@@ -296,6 +296,8 @@ delay(2);
 
 delay(2);
 
+  // serial_send_param_change(ParamId::PARAM_PW_VALUE,    (uint16_t)PW, false);  /// implementation required
+
   serial_send_param_change(ParamId::PARAM_LFO1_TO_DCO, (uint16_t)LFO1toDCO,  false);
 
   serial_send_param_change(ParamId::PARAM_LFO1_SPEED,  (uint16_t)LFO1Speed,  false);
@@ -315,7 +317,7 @@ delay(2);
   serial_send_param_change(ParamId::PARAM_OSC2_DETUNE_VAL,  (uint16_t)OSC2Detune,       false);
 
   serial_send_param_change(ParamId::PARAM_LFO2_TO_DETUNE2,  (uint16_t)LFO2toOSC2DETUNE, false);
-
+delay(2);
   serial_send_manual_controls(true);  
   
   delay(2);
@@ -325,7 +327,7 @@ delay(2);
   serial_send_param_change_byte(ParamId::PARAM_ADSR2_ATTACK_CURVE, (uint8_t)ADSR2AttackCurveVal, false);
   serial_send_param_change_byte(ParamId::PARAM_ADSR2_DECAY_CURVE,  (uint8_t)ADSR2DecayCurveVal,  false);
 
-  delay(100);
+  delay(50);
   // includes:
   // CUTOFF                   ------  PARAM GROUP VCF
   // RESONANCE                ------  PARAM GROUP VCF

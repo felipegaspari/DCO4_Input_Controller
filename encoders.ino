@@ -246,7 +246,7 @@ void read_encoders() {
           } else {
             oscSyncMode = oscSyncMode - 1;
           }
-          oscSyncMode = constrain(oscSyncMode, 0, 3);
+          oscSyncMode = constrain(oscSyncMode, 0, 225);
         }
         serial_send_oscSyncModeFlag = true;
         serial_send_param_change_byte(ParamId::PARAM_OSC_SYNC_MODE, (uint8_t)oscSyncMode);
