@@ -48,6 +48,9 @@ unsigned long loopStartTime;
 void setup() {
   init_controls();
   init_tables();
+
+  // USBDevice.setManufacturerDescriptor("FELA         ");
+  // USBDevice.setProductDescriptor("DCO4 Input Controller        ");
 }
 
 void setup1() {
@@ -88,6 +91,7 @@ void loop1() {
 
   millisTimer2();
 
+  
   if (timer1msFlag2) {
     setControlValues();  //LO HACE EL INPUT BOARD
     serial_send_manual_controls(false);
@@ -98,6 +102,7 @@ void loop1() {
       serialSendADSR3ControlValuesFlag = true;
     }
   }
+
 
   // if (timer99microsFlag2) {
   // sendSerial();
@@ -116,6 +121,8 @@ void loop1() {
     //serial_send_param_change(15, ADSR3toDETUNE1_formula * 100000);
     //Serial.println(tiempodeejecuciontotal);
   }
+        // Process any incoming frames from the mainboard/DCO on Serial1
+        serial_read_from_mainboard();
 }
 
 void loop() {
@@ -144,10 +151,9 @@ void loop() {
     //drawTM(CUTOFF);
     //serial_send_param_change(15, ADSR3toDETUNE1_formula * 100000);
     //Serial.println(tiempodeejecuciontotal);
-
-  // Process any incoming frames from the mainboard/DCO on Serial2
-  serial_read_from_mainboard();    
+  
   }
+
 
   // if (tiempodeejecuciontotal > 600) {
   //     drawTM(tiempodeejecuciontotal);

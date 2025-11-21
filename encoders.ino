@@ -173,7 +173,7 @@ void read_encoders() {
           } else {
             SQR1Level = SQR1Level - (1 + (1 * speed));
           }
-          SQR1Level = constrain(SQR1Level, 0, 128);
+          SQR1Level = constrain(SQR1Level, 0, 127);
         }
         serial_send_param_change_byte(ParamId::PARAM_SQR1_LEVEL, (uint8_t)SQR1Level);
         break;
@@ -185,7 +185,7 @@ void read_encoders() {
           } else {
             SQR2Level = SQR2Level - (1 + (1 * speed));
           }
-          SQR2Level = constrain(SQR2Level, 0, 128);
+          SQR2Level = constrain(SQR2Level, 0, 127);
         }
         serial_send_param_change_byte(ParamId::PARAM_SQR2_LEVEL, (uint8_t)SQR2Level);
         break;
@@ -197,7 +197,7 @@ void read_encoders() {
           } else {
             SubLevel = SubLevel - (1 + (1 * speed));
           }
-          SubLevel = constrain(SubLevel, 0, 128);
+          SubLevel = constrain(SubLevel, 0, 127);
         }
         serial_send_param_change_byte(ParamId::PARAM_SUB_LEVEL, (uint8_t)SubLevel);
         break;
@@ -209,7 +209,7 @@ void read_encoders() {
           } else {
             OSC2Interval = OSC2Interval - 1;
           }
-          OSC2Interval = constrain(OSC2Interval, 0, 48);
+          OSC2Interval = constrain(OSC2Interval, 0, 60);
         }
         serial_send_param_change_byte(ParamId::PARAM_OSC2_INTERVAL, (uint8_t)OSC2Interval);
         //serial_send_OSC2IntervalFlag = true;
@@ -467,14 +467,21 @@ void read_encoders() {
           uint8_t index = (uint8_t)manualCalibrationStage / 2;
           // Notify mainboard/DCO of the new manual calibration stage + its
           // per-oscillator offset so the DCO uses the correct value.
-          serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_STAGE, (uint8_t)manualCalibrationStage);
-          serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_OFFSET, (uint8_t)manualCalibrationInitAmpCompOffset[index]);
+          serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_STAGE,
+                                        (uint8_t)manualCalibrationStage,
+                                        /*sendToAll=*/false);
+          serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_OFFSET,
+                                        (uint8_t)manualCalibrationInitAmpCompOffset[index],
+                                        /*sendToAll=*/false);
 
           // Also send the same information directly to the screen controller
-          // so the displayed offset is updated immediately when changing
-          // oscillators/stages, instead of "carrying" the previous value.
-          serialSendParamByteToScreen(ParamId::PARAM_MANUAL_CALIBRATION_STAGE, (uint8_t)manualCalibrationStage);
-          serialSendParamByteToScreen(ParamId::PARAM_MANUAL_CALIBRATION_OFFSET, (uint8_t)manualCalibrationInitAmpCompOffset[index]);
+          // via 'y' so the displayed stage/offset are updated immediately
+          // and stay in lock-step with the encoder-driven state.
+          serialSendParamByteToScreen(ParamId::PARAM_MANUAL_CALIBRATION_STAGE,
+                                      (uint8_t)manualCalibrationStage);
+          serialSendParamByteToScreen(ParamId::PARAM_MANUAL_CALIBRATION_OFFSET,
+                                      (uint8_t)manualCalibrationInitAmpCompOffset[index]);
+
           break;
         }
       case ACTION_CALIBRATION_OFFSET:
@@ -487,7 +494,9 @@ void read_encoders() {
           }
           manualCalibrationInitAmpCompOffset[index] = constrain(manualCalibrationInitAmpCompOffset[index], -20, 20);
           // Forward updated offset to mainboard/DCO.
-          serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_OFFSET, (uint8_t)manualCalibrationInitAmpCompOffset[index]);
+          serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_OFFSET,
+                                        (uint8_t)manualCalibrationInitAmpCompOffset[index],
+                                        /*sendToAll=*/false);
           // And mirror it to the screen over the 'y' path so the UI reflects
           // the current per-oscillator offset as you tweak it.
           serialSendParamByteToScreen(ParamId::PARAM_MANUAL_CALIBRATION_OFFSET, (uint8_t)manualCalibrationInitAmpCompOffset[index]);

@@ -1,9 +1,17 @@
 #ifndef __SERIAL_H__
 #define __SERIAL_H__
 
-//#define ENABLE_SERIAL
+#define ENABLE_SERIAL
 #define ENABLE_SERIAL1
 #define ENABLE_SERIAL2
+
+#include "serial_param_protocol.h"
+#include "serial_protocol.h"
+#include "serial_parser.h"
+
+// Forward declare types that normally come from Arduino.h so the linter
+// can understand this header in isolation.
+typedef unsigned char byte;
 
 void serial_read_from_mainboard();
 
@@ -25,16 +33,6 @@ bool serialSendADSR3ToOscSelectFlag = false;
 
 void serial_send_param_change_byte(byte param, byte paramValue, bool sendToAll = true);
 void serial_send_param_change(byte param, uint16_t paramValue, bool sendToAll = true);
-
-// Convenience overloads to use the shared ParamId enum directly without
-// cluttering call sites with casts.
-inline void serial_send_param_change_byte(ParamId id, byte paramValue, bool sendToAll = true) {
-  serial_send_param_change_byte(static_cast<byte>(id), paramValue, sendToAll);
-}
-
-inline void serial_send_param_change(ParamId id, uint16_t paramValue, bool sendToAll = true) {
-  serial_send_param_change(static_cast<byte>(id), paramValue, sendToAll);
-}
 
 #endif
 

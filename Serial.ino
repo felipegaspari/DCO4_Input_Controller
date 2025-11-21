@@ -106,152 +106,86 @@ void serialSendParamByteToScreen(byte paramNumber, byte paramValue)
   Serial1.write(bytesArray, 4);
 }
 
-void serial_read_from_mainboard() {
-  while (Serial1.available() > 0) {
-    char commandCharacter = Serial1.read();
-    // Debug: log every incoming command byte on Serial1.
-    switch (commandCharacter) {
-      case 'a':
-        {
-          byte byteArray[8];
-          Serial2.readBytes(byteArray, 8);
+// ---------------------------------------------------------------------------
+// Parser-based receiver for mainboard/DCO frames on Serial1
+// ---------------------------------------------------------------------------
 
-          ADSR1_attack = word(byteArray[0], byteArray[1]);
-          ADSR1_decay = word(byteArray[2], byteArray[3]);
-          ADSR1_sustain = word(byteArray[4], byteArray[5]);
-          ADSR1_release = word(byteArray[6], byteArray[7]);
-          break;
-        }
-      case 'b':
-        {
-          byte byteArray[8];
-          Serial2.readBytes(byteArray, 8);
+// Handle 32-bit PARAM ('x') from the mainboard/DCO path.
+// Used here only for PARAM_MANUAL_CALIBRATION_OFFSET_FROM_DCO (155):
+//   value (uint32) lower 16 bits = [oscIndex:8 | offset:8]
+static void input_handle_param32_from_mainboard(char, const uint8_t* payload, uint8_t len) {
+  if (len != SERIAL_PAYLOAD_LEN_PARAM_32) {
+    return;
+  }
 
-          ADSR2_attack = word(byteArray[0], byteArray[1]);
-          ADSR2_decay = word(byteArray[2], byteArray[3]);
-          ADSR2_sustain = word(byteArray[4], byteArray[5]);
-          ADSR2_release = word(byteArray[6], byteArray[7]);
-          break;
-        }
-      case 'c':
-        {
-          byte byteArray[8];
-          Serial2.readBytes(byteArray, 8);
+  ParamFrame frame;
+  decode_param_x(payload, frame);
 
-          ADSR3_attack = word(byteArray[0], byteArray[1]);
-          ADSR3_decay = word(byteArray[2], byteArray[3]);
-          ADSR3_sustain = word(byteArray[4], byteArray[5]);
-          ADSR3_release = word(byteArray[6], byteArray[7]);
-          break;
-        }
-      case 'd':
-        {
-          byte byteArray[8];
-          Serial2.readBytes(byteArray, 8);
+  if (frame.id != (uint8_t)PARAM_MANUAL_CALIBRATION_OFFSET_FROM_DCO) {
+    return;
+  }
 
-          CUTOFF = word(byteArray[0], byteArray[1]);
-          RESONANCE = word(byteArray[2], byteArray[3]);
-          ADSR2toVCF = word(byteArray[4], byteArray[5]);
-          LFO2toVCF = word(byteArray[6], byteArray[7]);
-          break;
-        }
-      case 'e':
-        {
-          byte byteArray[2];
-          Serial2.readBytes(byteArray, 2);
+  uint16_t packed  = (uint16_t)frame.value;
+  uint8_t  oscIndex = (uint8_t)(packed >> 8);
+  int8_t   offset   = (int8_t)(packed & 0xFF);
 
-          ADSR1toVCA = word(byteArray[0], byteArray[1]);
-          break;
-        }
-      case 'f':
-        {
-          byte byteArray[2];
-          Serial2.readBytes(byteArray, 2);
+  // Serial.print("[IN] RX PARAM32 id=155 idx=");
+  // Serial.print((int)oscIndex);
+  // Serial.print(" offset=");
+  // Serial.println((int)offset);
 
-          PW = word(byteArray[0], byteArray[1]);
-          break;
-        }
-      case 'n':
-        {
-          byte byteArray[3];
-
-          Serial2.readBytes(byteArray, 3);
-
-          byte voice_n = byteArray[0];
-          velocity[voice_n] = byteArray[1];
-          note[voice_n] = byteArray[2];
-
-          noteStart[voice_n] = 1;
-          noteEnd[voice_n] = 0;
-
-          break;
-        }
-      case 'o':
-        {
-          byte voice_n;
-
-          voice_n = Serial2.read();
-          noteEnd[voice_n] = 1;
-          noteStart[voice_n] = 0;
-
-          break;
-        }
-      case 'g':
-        {
-          byte dataArray[4];
-          byte ndata = 0;
-          while (ndata < 4) {
-            dataArray[ndata] = Serial2.read();
-            ndata++;
-          }
-          float a;
-          ((uint8_t *)&a)[0] = dataArray[0];
-          ((uint8_t *)&a)[1] = dataArray[1];
-          ((uint8_t *)&a)[2] = dataArray[2];
-          ((uint8_t *)&a)[3] = dataArray[3];
-          freq = a;
-          break;
-        }
-
-      // 'x' : PARAM 32-bit (id + uint32 LE + finish) from mainboard/DCO path.
-      // Used here to receive packed manual calibration offsets:
-      //   id == PARAM_MANUAL_CALIBRATION_OFFSET_FROM_DCO (155)
-      //   value (uint32) lower 16 bits = [oscIndex:8 | offset:8]
-      case 'x':
-        {
-          byte payload[6];
-          Serial2.readBytes(payload, 6);
-          uint8_t paramId = payload[0];
-          if (paramId == PARAM_MANUAL_CALIBRATION_OFFSET_FROM_DCO) {
-            uint32_t v = (uint32_t)payload[1] |
-                         ((uint32_t)payload[2] << 8) |
-                         ((uint32_t)payload[3] << 16) |
-                         ((uint32_t)payload[4] << 24);
-            uint16_t packed  = (uint16_t)v;
-            uint8_t oscIndex = (uint8_t)(packed >> 8);
-            int8_t offset    = (int8_t)(packed & 0xFF);
-            Serial.print("[IN] RX PARAM32 id=155 idx=");
-            Serial.print((int)oscIndex);
-            Serial.print(" offset=");
-            Serial.println((int)offset);
-
-            if (oscIndex < NUM_OSCILLATORS) {
-              manualCalibrationInitAmpCompOffset[oscIndex] = offset;
-              // If this oscillator is currently selected in the manual
-              // calibration UI, send its offset to the screen so the
-              // displayed value reflects the stored offset.
-              uint8_t currentIndex = (uint8_t)manualCalibrationStage / 2;
-              if (oscIndex == currentIndex) {
-                serial_send_param_change_byte(
-                  ParamId::PARAM_MANUAL_CALIBRATION_OFFSET,
-                  (uint8_t)manualCalibrationInitAmpCompOffset[currentIndex]
-                );
-              }
-            }
-          }
-          // payload[5] is finishByte; we don't need its value here.
-          break;
-        }
+  if (oscIndex < NUM_OSCILLATORS) {
+    manualCalibrationInitAmpCompOffset[oscIndex] = offset;
+    // If we are currently in manual calibration and this oscillator
+    // matches the selected stage, push the freshly loaded offset to
+    // the screen so the initial value reflects the DCO's stored one.
+    if (manualCalibration) {
+      uint8_t currentIndex = (uint8_t)manualCalibrationStage / 2;
+      if (oscIndex == currentIndex) {
+        serialSendParamByteToScreen(
+          ParamId::PARAM_MANUAL_CALIBRATION_OFFSET,
+          (uint8_t)manualCalibrationInitAmpCompOffset[currentIndex]
+        );
+      }
     }
   }
+}
+
+// Command table and parser context for Serial1 (mainboard->input link).
+static const SerialCommandDef mainboardSerial1Commands[] = {
+  { SERIAL_CMD_PARAM_32, SERIAL_PAYLOAD_LEN_PARAM_32, input_handle_param32_from_mainboard },
+};
+
+static SerialParserContext mainboardSerial1Parser = {
+  SERIAL_WAIT_FOR_CMD,
+  0,
+  {0},
+  0,
+  0,
+  0
+};
+
+void serial_read_from_mainboard() {
+#ifdef ENABLE_SERIAL1
+  // Expire any stale partial frame (only if we're in a frame).
+  if (mainboardSerial1Parser.state == SERIAL_READ_PAYLOAD) {
+    uint32_t now = micros();
+    serial_parser_check_timeout(mainboardSerial1Parser, now);
+  }
+
+  // Consume all available bytes without blocking.
+  if (Serial1.available() > 0) {
+    uint32_t now = micros();  // one timestamp per batch is enough
+    while (Serial1.available() > 0) {
+      uint8_t b = Serial1.read();
+      serial_parser_process_byte(
+        mainboardSerial1Parser,
+        mainboardSerial1Commands,
+        sizeof(mainboardSerial1Commands) / sizeof(mainboardSerial1Commands[0]),
+        b,
+        now
+      );
+    }
+  }
+#endif
 }

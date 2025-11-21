@@ -520,9 +520,18 @@ void read_encoder_buttons() {
         manualCalibration = true;
         currentControlMode = MANUAL_CALIBRATION;
         manualCalibrationStage = 0;
-        serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_FLAG, manualCalibration);
-        serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_STAGE, (uint8_t)manualCalibrationStage);
-        serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_OFFSET, (uint8_t)manualCalibrationInitAmpCompOffset[manualCalibrationStage / 2]);
+        serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_FLAG, manualCalibration, true);
+        serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_STAGE,
+                                      (uint8_t)manualCalibrationStage,
+                                      /*sendToAll=*/false);
+        serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_OFFSET,
+                                      (uint8_t)manualCalibrationInitAmpCompOffset[manualCalibrationStage / 2],
+                                      /*sendToAll=*/false);
+        // And initialize the screen UI via 'y'.
+        serialSendParamByteToScreen(ParamId::PARAM_MANUAL_CALIBRATION_STAGE,
+                                    (uint8_t)manualCalibrationStage);
+        serialSendParamByteToScreen(ParamId::PARAM_MANUAL_CALIBRATION_OFFSET,
+                                    (uint8_t)manualCalibrationInitAmpCompOffset[manualCalibrationStage / 2]);
         break;
 
       case BACK:
