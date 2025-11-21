@@ -5,7 +5,7 @@
 #define ENABLE_SERIAL1
 #define ENABLE_SERIAL2
 
-void serial_read_n();
+void serial_read_from_mainboard();
 
 float freq;
 

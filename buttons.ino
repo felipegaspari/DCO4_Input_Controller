@@ -103,6 +103,14 @@ void read_encoder_buttons() {
             currentButtonAction = BTN_ACTION_NONE;
             manualCalibration = false;
             serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_FLAG, manualCalibration);
+            // Explicitly request the DCO to persist the current
+            // manualCalibrationOffset[] array to its filesystem. This keeps
+            // the MANUAL_CALIBRATION_FLAG free for UI/mode control while
+            // making CONFIRM the only path that actually stores offsets.
+            serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_STORE, 1);
+            // After confirming manual calibration, also dismiss the calibration
+            // menu on the screen so we fully return to the main UI.
+            serial_send_param_change_byte(ParamId::PARAM_UI_CALIBRATION_DISMISS, 0);
             break;
         }
         break;
@@ -267,7 +275,7 @@ void read_encoder_buttons() {
       case TG_ADSR2_RESTART:  //
         if (ADSR2CurveSelect == true) {
           ADSR2CurveSelect = false;
-          serial_send_param_change_byte(ParamId::PARAM_ADSR1_ATTACK_CURVE, -1);
+          serial_send_param_change_byte(ParamId::PARAM_ADSR2_ATTACK_CURVE, -1);
         } else {
           if (buttonActionIsSelected) {
             VCFADSRRestart = !VCFADSRRestart;
@@ -512,10 +520,9 @@ void read_encoder_buttons() {
         manualCalibration = true;
         currentControlMode = MANUAL_CALIBRATION;
         manualCalibrationStage = 0;
-        memset(manualCalibrationInitAmpCompOffset, 0, sizeof(manualCalibrationInitAmpCompOffset));
         serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_FLAG, manualCalibration);
-        serial_send_param_change(ParamId::PARAM_MANUAL_CALIBRATION_STAGE, (uint8_t)manualCalibrationStage);
-        serial_send_param_change(ParamId::PARAM_MANUAL_CALIBRATION_OFFSET, (uint8_t)manualCalibrationInitAmpCompOffset[manualCalibrationStage / 2]);
+        serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_STAGE, (uint8_t)manualCalibrationStage);
+        serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_OFFSET, (uint8_t)manualCalibrationInitAmpCompOffset[manualCalibrationStage / 2]);
         break;
 
       case BACK:

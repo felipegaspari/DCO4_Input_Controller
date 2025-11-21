@@ -103,8 +103,6 @@ void loop1() {
   // sendSerial();
   // }
 
-  //serial_read_n();
-
   // unsigned long tiempodeejecuciontotal = micros() - loopStartMicros;
 
   if (timer31msFlag2) {
@@ -131,6 +129,8 @@ void loop() {
 
   readControls();
 
+
+
   // uint32_t j = micros();
 
   // tiempodeejecucion = (micros() - j);
@@ -144,6 +144,9 @@ void loop() {
     //drawTM(CUTOFF);
     //serial_send_param_change(15, ADSR3toDETUNE1_formula * 100000);
     //Serial.println(tiempodeejecuciontotal);
+
+  // Process any incoming frames from the mainboard/DCO on Serial2
+  serial_read_from_mainboard();    
   }
 
   // if (tiempodeejecuciontotal > 600) {
@@ -159,9 +162,7 @@ void loop() {
   //drawTM(tiempodeejecucion);
   if (timer200msFlag) {
 
-  // One-shot preset bank dump at boot for debugging. Comment out when done.
-
-    Serial.print("|");
+   Serial.println("|");
   }
   if (1 == 2) {
   //if (timer99microsFlag) {58

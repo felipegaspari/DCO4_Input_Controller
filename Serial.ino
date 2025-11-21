@@ -106,9 +106,10 @@ void serialSendParamByteToScreen(byte paramNumber, byte paramValue)
   Serial1.write(bytesArray, 4);
 }
 
-void serial_read_n() {
-  while (Serial2.available() > 0) {
-    char commandCharacter = Serial2.read();
+void serial_read_from_mainboard() {
+  while (Serial1.available() > 0) {
+    char commandCharacter = Serial1.read();
+    // Debug: log every incoming command byte on Serial1.
     switch (commandCharacter) {
       case 'a':
         {
@@ -198,23 +199,57 @@ void serial_read_n() {
       case 'g':
         {
           byte dataArray[4];
-
           byte ndata = 0;
           while (ndata < 4) {
-            //for (byte ndata = 0; ndata < 122; ndata++)
-            //if (Serial2.available() > 0) {
-
             dataArray[ndata] = Serial2.read();
             ndata++;
-            //}
           }
           float a;
           ((uint8_t *)&a)[0] = dataArray[0];
           ((uint8_t *)&a)[1] = dataArray[1];
           ((uint8_t *)&a)[2] = dataArray[2];
           ((uint8_t *)&a)[3] = dataArray[3];
-
           freq = a;
+          break;
+        }
+
+      // 'x' : PARAM 32-bit (id + uint32 LE + finish) from mainboard/DCO path.
+      // Used here to receive packed manual calibration offsets:
+      //   id == PARAM_MANUAL_CALIBRATION_OFFSET_FROM_DCO (155)
+      //   value (uint32) lower 16 bits = [oscIndex:8 | offset:8]
+      case 'x':
+        {
+          byte payload[6];
+          Serial2.readBytes(payload, 6);
+          uint8_t paramId = payload[0];
+          if (paramId == PARAM_MANUAL_CALIBRATION_OFFSET_FROM_DCO) {
+            uint32_t v = (uint32_t)payload[1] |
+                         ((uint32_t)payload[2] << 8) |
+                         ((uint32_t)payload[3] << 16) |
+                         ((uint32_t)payload[4] << 24);
+            uint16_t packed  = (uint16_t)v;
+            uint8_t oscIndex = (uint8_t)(packed >> 8);
+            int8_t offset    = (int8_t)(packed & 0xFF);
+            Serial.print("[IN] RX PARAM32 id=155 idx=");
+            Serial.print((int)oscIndex);
+            Serial.print(" offset=");
+            Serial.println((int)offset);
+
+            if (oscIndex < NUM_OSCILLATORS) {
+              manualCalibrationInitAmpCompOffset[oscIndex] = offset;
+              // If this oscillator is currently selected in the manual
+              // calibration UI, send its offset to the screen so the
+              // displayed value reflects the stored offset.
+              uint8_t currentIndex = (uint8_t)manualCalibrationStage / 2;
+              if (oscIndex == currentIndex) {
+                serial_send_param_change_byte(
+                  ParamId::PARAM_MANUAL_CALIBRATION_OFFSET,
+                  (uint8_t)manualCalibrationInitAmpCompOffset[currentIndex]
+                );
+              }
+            }
+          }
+          // payload[5] is finishByte; we don't need its value here.
           break;
         }
     }

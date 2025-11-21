@@ -465,8 +465,16 @@ void read_encoders() {
           }
           manualCalibrationStage = constrain(manualCalibrationStage, 0, 15);
           uint8_t index = (uint8_t)manualCalibrationStage / 2;
+          // Notify mainboard/DCO of the new manual calibration stage + its
+          // per-oscillator offset so the DCO uses the correct value.
           serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_STAGE, (uint8_t)manualCalibrationStage);
           serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_OFFSET, (uint8_t)manualCalibrationInitAmpCompOffset[index]);
+
+          // Also send the same information directly to the screen controller
+          // so the displayed offset is updated immediately when changing
+          // oscillators/stages, instead of "carrying" the previous value.
+          serialSendParamByteToScreen(ParamId::PARAM_MANUAL_CALIBRATION_STAGE, (uint8_t)manualCalibrationStage);
+          serialSendParamByteToScreen(ParamId::PARAM_MANUAL_CALIBRATION_OFFSET, (uint8_t)manualCalibrationInitAmpCompOffset[index]);
           break;
         }
       case ACTION_CALIBRATION_OFFSET:
@@ -477,8 +485,12 @@ void read_encoders() {
           } else {
             manualCalibrationInitAmpCompOffset[index] = manualCalibrationInitAmpCompOffset[index] - 1;
           }
-          manualCalibrationInitAmpCompOffset[index] = constrain(manualCalibrationInitAmpCompOffset[index], -15, 15);
+          manualCalibrationInitAmpCompOffset[index] = constrain(manualCalibrationInitAmpCompOffset[index], -20, 20);
+          // Forward updated offset to mainboard/DCO.
           serial_send_param_change_byte(ParamId::PARAM_MANUAL_CALIBRATION_OFFSET, (uint8_t)manualCalibrationInitAmpCompOffset[index]);
+          // And mirror it to the screen over the 'y' path so the UI reflects
+          // the current per-oscillator offset as you tweak it.
+          serialSendParamByteToScreen(ParamId::PARAM_MANUAL_CALIBRATION_OFFSET, (uint8_t)manualCalibrationInitAmpCompOffset[index]);
         }
         break;
 
