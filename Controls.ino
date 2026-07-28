@@ -1,3 +1,4 @@
+// Boot Core0: 12-bit ADC, encoders begin, mux GPIO directions.
 void init_controls() {
   analogReadResolution(12);
 
@@ -25,6 +26,7 @@ void init_controls() {
   pinMode(muxAnalog_PIN_SIG, INPUT);
 }
 
+// Core0 hot path: scan mux (analog on 1 ms) and encoders/buttons (~99 µs).
 void readControls() {
 
   if (timer1msFlag) {
@@ -44,6 +46,7 @@ void readControls() {
   }
 }
 
+// Core1 @1 ms: map filtered fader/pot ADC into locals when manual flags are set.
 void setControlValues() {
 
   if (faderRow1ControlManual) {
@@ -95,6 +98,7 @@ void setControlValues() {
   // }
 }
 
+// Apply dual Kalman filters to muxAnalogRaw[] → muxAnalogData[].
 void read_AnalogMux() {
 
   for (uint8_t i = 0; i < 16; i++) {
@@ -117,6 +121,7 @@ muxAnalogData[i] = simpleKalmanFilter[i+16].updateEstimate(simpleKalmanFilter[i]
   }
 }
 
+// Scan 16 mux channels into valorMUX1[48]; optionally sample analog on each channel.
 void read_digitalMux(bool readPots) {
 
   for (activeDigitalMuxChannel = 0; activeDigitalMuxChannel < 16; activeDigitalMuxChannel++) {
@@ -136,6 +141,7 @@ void read_digitalMux(bool readPots) {
   }
 }
 
+// Legacy preset-save encoder path. Superseded by main encoder modes; keep for reference.
 void read_encoders_preset_save() {
   byte x = enc5.read(valorMUX1[0], valorMUX1[1]);
 
@@ -156,6 +162,7 @@ void read_encoders_preset_save() {
   }
 }
 
+// Legacy preset-save button path for char position / confirm.
 void read_encoder_buttons_preset_save() {
   button5.update(valorMUX1[14], 50, LOW);
   if (button5.held()) {
@@ -182,6 +189,7 @@ void read_encoder_buttons_preset_save() {
 }
 
 
+// Cubic-ish fader curve helper (also used from Controls).
 uint16_t faderExpConverter(uint16_t readingValue) {
   uint16_t pow3Calc = readingValue / 4;
   uint16_t expValOut = pow3Calc * pow3Calc * pow3Calc / 20000;

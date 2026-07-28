@@ -46,6 +46,7 @@ uint32_t tiempodeejecucion;
 unsigned long loopStartTime;
 
 void setup() {
+  // Core0 boot: panel mux/encoders and lin→exp table.
   init_controls();
   init_tables();
 
@@ -54,7 +55,7 @@ void setup() {
 }
 
 void setup1() {
-
+  // Core1 boot: UARTs, LEDs, LittleFS presets, LED PWM.
 #ifdef ENABLE_SERIAL
   Serial.begin(2000000);
 #endif
@@ -86,6 +87,7 @@ void setup1() {
 }
 
 void loop1() {
+  // Core1: map manual controls, TX blocks, LED refresh, inbound 'x' parser.
 
   unsigned long loopStartMicros = micros();
 
@@ -126,6 +128,7 @@ void loop1() {
 }
 
 void loop() {
+  // Core0: soft timers + panel scan (mux / encoders / buttons).
 
   // loopStartTime = micros();
 

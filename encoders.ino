@@ -1,5 +1,5 @@
-
 #include "include_all.h"
+// Core0 ~99 µs: read all encoders and dispatch EncoderAction (ParamId / UI / cal).
 void read_encoders() {
 
   if ((millis() - encoderActionSelectedMillis) > encoderActionSelectedTimeout) {

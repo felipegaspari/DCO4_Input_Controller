@@ -1,3 +1,4 @@
+// Boot Core1: GPIO + Rox74HC595 begin for status LEDs.
 void init_LED_control() {
   pinMode(PIN_LATCH, OUTPUT);
   pinMode(PIN_DATA, OUTPUT);
@@ -7,6 +8,7 @@ void init_LED_control() {
   LED_Control_Mux.allOff();
 }
 
+// Update one LED or (LEDNumber==16) refresh all from wave/manual status flags.
 void set_LED_Status(byte LEDNumber, byte LEDStatus) {
 
   if (LEDNumber == 16) {
@@ -36,6 +38,7 @@ void set_LED_Status(byte LEDNumber, byte LEDStatus) {
   }
 }
 
+// Write LEDState[] to the 595 mux pins (call update separately on timer).
 void update_LED_Control(byte LEDnumber, byte LEDStatus) {
 
   if (LEDnumber == 16) {

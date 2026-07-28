@@ -1,3 +1,4 @@
+// Send uint16 frame 'u' on Serial2. Currently unused helper.
 void sendUint16(uint16_t f) {
   byte *b = (byte *)&f;
 
@@ -6,6 +7,7 @@ void sendUint16(uint16_t f) {
   Serial2.write(b, 2);
 }
 
+// Send float bytes after 't' on Serial2. Currently unused helper.
 void sendFloat(float f) {
   byte *b = (byte *)&f;
 
@@ -18,12 +20,14 @@ void sendFloat(float f) {
   return;
 }
 
+// Send 'k' OK on Serial2. Currently unused helper.
 void sendOK() {
 
   Serial2.write((char *)"k");
   //Serial.println("Sent OK");
 }
 
+// Legacy autotune kick on Serial2. Currently unused.
 void serial_send_autotune() {
   byte autotune_on = 255;
   Serial2.write((char *)"a");
@@ -32,6 +36,7 @@ void serial_send_autotune() {
   //Serial.println("Sent autotune on");
 }
 
+// Screen UI mode signal ('s' + byte) on Serial1.
 void serial_send_signal(byte signal) {
 #ifdef ENABLE_SERIAL1
 
@@ -42,6 +47,7 @@ void serial_send_signal(byte signal) {
 }
 
 
+// Send 'p' 16-bit ParamId to Screen (optional) and Mainboard Serial2.
 void serial_send_param_change(byte param, uint16_t paramValue, bool sendToAll) {
   byte bytesArray[5] = { (uint8_t)'p', param, highByte(paramValue), lowByte(paramValue), finishByte };
 #ifdef ENABLE_SERIAL1
@@ -56,6 +62,7 @@ void serial_send_param_change(byte param, uint16_t paramValue, bool sendToAll) {
 #endif
 }
 
+// Send 'w' 8-bit ParamId to Screen (optional) and Mainboard Serial2.
 void serial_send_param_change_byte(byte param, byte paramValue, bool sendToAll) {
   byte bytesArrayByte[4] = { (uint8_t)'w', param, paramValue, finishByte };
 #ifdef ENABLE_SERIAL1
@@ -70,6 +77,7 @@ void serial_send_param_change_byte(byte param, byte paramValue, bool sendToAll) 
 #endif
 }
 
+// Send preset name (8 chars) to Mainboard via 'q' on Serial2.
 void serial_send_preset_name_to_mainboard() {
   Serial2.write((char *)"q");
   // Mainboard-side 'q' (input link) expects 8 chars; send first 8 only.
@@ -77,6 +85,7 @@ void serial_send_preset_name_to_mainboard() {
   Serial2.write(finishByte);
 }
 
+// Send preset scroll (number + 16-char name) to Screen via 'q' on Serial1.
 void serial_send_preset_scroll(byte presetNumber, byte presetNameSerial[]) {
 
 #ifdef ENABLE_SERIAL1
@@ -90,6 +99,7 @@ void serial_send_preset_scroll(byte presetNumber, byte presetNameSerial[]) {
 #endif
 }
 
+// Send save-name character position to Screen via 'c' on Serial1.
 void serial_send_save_char_select(byte serialPresetChar) {
 #ifdef ENABLE_SERIAL1
 
@@ -99,6 +109,7 @@ void serial_send_save_char_select(byte serialPresetChar) {
 #endif
 }
 
+// Send 'y' byte param to Screen on Serial1.
 void serialSendParamByteToScreen(byte paramNumber, byte paramValue)
 {
  while(Serial1.availableForWrite() < 1) {};
@@ -165,6 +176,7 @@ static SerialParserContext mainboardSerial1Parser = {
   0
 };
 
+// Core1: non-blocking Serial1 parser pump for inbound 'x' frames.
 void serial_read_from_mainboard() {
 #ifdef ENABLE_SERIAL1
   // Expire any stale partial frame (only if we're in a frame).

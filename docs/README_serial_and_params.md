@@ -4,6 +4,14 @@ This document explains how to use the shared **serial** and **parameter** infras
 
 The goal: you can copy the library headers into a new project, define a few hooks, and immediately speak the same protocol.
 
+### Input Controller notes (this repo)
+
+- This board is primarily a **sender** of `'a'..'f'` control blocks and `'p'`/`'w'` ParamId frames to **Mainboard Serial8** (via Input `Serial2`) and UI frames to the **Screen** (via Input `Serial1`).
+- Live inbound path today: `serial_read_from_mainboard()` on **Serial1** for `'x'` calibration offset only — see [`CONTROL_PIPELINE.md`](CONTROL_PIPELINE.md).
+- `params.ino` apply-router is **commented out**; do not assume `update_parameters` is live here.
+- `serial_input_protocol.h` is present but not included by `Serial.h` (sizes are hardcoded in TX helpers) — keep payloads aligned with Mainboard handlers.
+- Panel / pin detail: [`PANEL_AND_PINS.md`](PANEL_AND_PINS.md).
+
 ---
 
 ## 1. Shared “library” headers

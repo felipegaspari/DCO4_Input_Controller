@@ -50,11 +50,13 @@ SimpleKalmanFilter(e_mea_2, e_est_2, q_value_2),
 uint16_t linToExpLookup[LIN_TO_EXP_TABLE_SIZE];
 uint16_t maxADSRControlValue = 25000;
 
+// Float map helper.
 float mapFloat(float x, float in_min, float in_max, float out_min,
                float out_max) {
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
+// Lin→exp mapping for ADSR TX lookup table (filled by init_tables).
 uint16_t linearToExponential(uint16_t linearValue, float base, uint16_t maxValue) {
 
   if (linearValue < 0) linearValue = 0;

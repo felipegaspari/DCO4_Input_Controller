@@ -1,3 +1,4 @@
+// Boot Core1: mount LittleFS presetBank1, load RAM bank, loadPreset(1).
 void initFS() {
   LittleFS.begin();
 
@@ -52,6 +53,7 @@ void initFS() {
   loadPreset(1);
 }
 
+// Copy 12 name chars from preset slot into loadedName[].
 void load_preset_name(byte destinationPreset) {
 
   if (destinationPreset >= NUM_PRESETS) {
@@ -74,6 +76,7 @@ void load_preset_name(byte destinationPreset) {
   loadedName[11] = presetBank1Buffer[130 + startByteN];
 }
 
+// Unpack presetN from RAM bank into synth locals and re-TX (see loadPresetActions).
 void loadPreset(uint16_t presetN) {
 
   if (presetN >= NUM_PRESETS) {
@@ -374,6 +377,7 @@ delay(2);
 //   - preset number
 //   - 12-char name (offset 119..130)
 //   - first 16 data bytes in hex
+// Debug: dump entire preset bank to USB Serial.
 void dumpPresetBankToSerial() {
 #ifdef ENABLE_SERIAL
   Serial.println(F("=== Preset bank dump ==="));
@@ -407,6 +411,7 @@ void dumpPresetBankToSerial() {
 #endif
 }
 
+// Copy preset name bytes into caller array.
 void get_preset_name(byte presetN, byte (&myarray)[16]) {
   if (presetN >= NUM_PRESETS) {
     return;
@@ -417,6 +422,7 @@ void get_preset_name(byte presetN, byte (&myarray)[16]) {
   }
 }
 
+// Pack current state into flashData, write slot to LittleFS + RAM bank.
 void writePreset(uint16_t presetN) {
 
   if (presetN >= NUM_PRESETS) {
@@ -619,6 +625,7 @@ void writePreset(uint16_t presetN) {
 
 }
 
+// Post-save UI/state cleanup (clear manual flags, refresh LEDs).
 void writePresetActions(uint16_t presetN) {
 
   faderRow1ControlManual = false;
@@ -637,6 +644,7 @@ void writePresetActions(uint16_t presetN) {
   set_LED_Status(16, 0);
 }
 
+// Post-load UI/state cleanup after unpacking a preset.
 void loadPresetActions(uint16_t presetN) {
 
   faderRow1ControlManual = false;

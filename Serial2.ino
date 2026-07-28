@@ -1,3 +1,4 @@
+// @1 ms / preset load: TX manual control blocks 'a'..'f' to Mainboard (Serial2) and Screen (Serial1).
 void serial_send_manual_controls(bool presetLoading) {
   if (faderRow1ControlManual || presetLoading) {
     // Exponential-mapped values for DCO
@@ -124,6 +125,7 @@ void serial_send_manual_controls(bool presetLoading) {
   }
 }
 
+// Legacy flag-driven Serial2 TX (portamento/sync/etc). Not scheduled in loop1 today.
 void sendSerial() {  // to DCO
 
 

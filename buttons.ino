@@ -1,4 +1,5 @@
 #include "include_all.h"
+// Core0 ~99 µs: update RoxButtons from mux and dispatch ButtonAction handlers.
 void read_encoder_buttons() {
 
   if ((millis() - buttonActionSelectedMillis) > buttonActionSelectedTimeout) {
@@ -550,6 +551,7 @@ void read_encoder_buttons() {
   }
 }
 
+// Dispatch latched-button action for button index i.
 void handleLatchedButton(int i) {
   if (i <= 6) {
     buttonIsLatched[i] = true;
@@ -558,21 +560,25 @@ void handleLatchedButton(int i) {
   }
 }
 
+// Dispatch held-button action for button index i.
 void handleHeldButton(int i) {
   ButtonStruct& button = buttons[i];
   currentButtonAction = funcKeyOn ? button.actionHeldAlt : button.actionHeld;
 }
 
+// Dispatch double-press action for button index i.
 void handleDoublePressedButton(int i) {
   ButtonStruct& button = buttons[i];
   currentButtonAction = button.actionDouble;
 }
 
+// Dispatch press action for button index i.
 void handlePressedButton(int i) {
   ButtonStruct& button = buttons[i];
   currentButtonAction = funcKeyOn ? button.actionPressedAlt : button.actionPressed;
 }
 
+// Dispatch release action for button index i.
 void handleReleasedButton(int i) {
   ButtonStruct& button = buttons[i];
   if (i <= 6) {
@@ -583,6 +589,7 @@ void handleReleasedButton(int i) {
   currentButtonAction = funcKeyOn ? button.actionReleasedAlt : button.actionReleased;
 }
 
+// Dispatch unlatch action for button index i.
 void handleUnlatchedButton(int i) {
   if (i <= 6) {
     buttonIsLatched[i] = false;
